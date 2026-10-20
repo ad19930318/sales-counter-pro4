@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f6fc">
+<title>営業カウンター PRO 4 - 決済別管理</title>
+<style>
+:root{--navy:#13233f;--muted:#66758d;--blue:#2367e8;--green:#139e70;--bg:#f3f6fc;--line:#e6ebf3;--shadow:0 5px 22px rgba(22,47,85,.055)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--navy);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;border:0;cursor:pointer;touch-action:manipulation}
+main{max-width:560px;margin:auto;padding:20px 15px max(45px,env(safe-area-inset-bottom))}
+header{background:linear-gradient(120deg,#152d55,#265cbb);color:white;padding:22px 20px;border-radius:24px;box-shadow:0 10px 26px #205ac12c}
+h1{font-size:25px;letter-spacing:-.8px;margin:0 0 6px}
+.subtitle{font-size:13px;opacity:.86}
+h2{font-size:18px;margin:27px 2px 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+.card,.item{background:white;border:1px solid #eaf0f6;border-radius:19px;box-shadow:var(--shadow)}
+.card{padding:17px}
+.small{font-size:13px;color:var(--muted)}
+.value{font-size:39px;font-weight:850;letter-spacing:-1.5px;margin:4px 0}
+.unit{font-size:12px;color:var(--muted)}
+.bar{height:7px;background:#eaf0f6;border-radius:8px;overflow:hidden;margin-top:13px}
+.fill{height:100%;width:0%;background:var(--blue);border-radius:8px;transition:width .2s}
+.item{padding:16px;margin-bottom:10px}
+.flex{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.label{font-size:17px;font-weight:780}
+.note{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+.count{font-size:27px;font-weight:800;font-variant-numeric:tabular-nums;min-width:24px;text-align:right}
+.add{background:var(--blue);color:white;border-radius:13px;padding:13px 18px;font-size:19px;font-weight:800;min-width:75px}
+.primary{width:100%;background:var(--green);color:white;border-radius:14px;padding:17px 12px;font-size:18px;font-weight:850}
+.secondary{background:#eef3fb;color:#294468;border-radius:12px;padding:12px;font-size:13px;font-weight:750}
+.pill{display:inline-block;font-size:12px;padding:5px 9px;background:#f0f5ff;border-radius:10px;color:#416292;margin:4px 4px 0 0}
+.pill.green{background:#e7f8ef;color:#168055}.pill.orange{background:#fff3e2;color:#9c6400}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+.metric{text-align:center;border:1px solid var(--line);border-radius:14px;padding:11px 5px}
+.metric b{display:block;font-size:23px;margin:4px 0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.mini{border-radius:14px;padding:12px 5px;background:#f6f9fe;text-align:center}
+.mini strong{display:block;font-size:19px;margin-top:5px}
+.mini small{color:var(--muted);font-size:11px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.wide{margin-top:14px;width:100%}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.actions button{flex:1 1 130px}
+.section-note{color:var(--muted);font-size:12px;line-height:1.6;margin:-5px 3px 13px}
+.progressline{font-size:13px;color:var(--muted);margin-top:14px}
+.history{border-top:1px solid var(--line);padding:13px 0}
+.history:first-child{border-top:0;padding-top:0}
+.historyhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.history-title{font-weight:750}
+.history-number{font-size:13px;color:#4b5b72}
+.history button{margin-top:8px;padding:8px 11px;font-size:12px;background:#edf4ff;color:#2454a2;border-radius:9px;font-weight:750}
+#empty-note{display:none;font-size:12px;color:#8b5f00;background:#fff9e8;border-radius:10px;padding:11px;margin:10px 0}
+textarea{width:100%;resize:vertical;min-height:160px;border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--navy);background:#fafcff;font-size:13px;line-height:1.6}
+summary{cursor:pointer;font-weight:750;padding:3px 0}
+footer{text-align:center;margin-top:25px;font-size:11px;line-height:1.7;color:#8290a5}
+/* 獲得登録シート */
+dialog{border:0;padding:0;width:calc(100% - 24px);max-width:500px;max-height:calc(100dvh - 28px);border-radius:22px;box-shadow:0 22px 90px #0517335e;overflow:auto;background:white}
+dialog::backdrop{background:#15233a94}
+.dialog-body{padding:19px}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dialog-head h2{margin:0;font-size:21px}
+.close{background:#eef2f8;border-radius:100px;padding:8px 12px;font-size:18px;color:#4d5f76}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 20px}
+.choice{border:2px solid #e2e8f3;background:#f9fbfe;border-radius:13px;color:#2f4463;padding:13px 5px;font-size:14px;font-weight:760}
+.choice.selected{border-color:var(--blue);background:#eaf2ff;color:#1456cb}
+.choice.selected.kind{border-color:#12a474;background:#e6f8ee;color:#0b835b}
+.choice.selected.pay{border-color:#d58415;background:#fff3df;color:#995409}
+.pay-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 18px}
+.pay-grid button{padding:15px 3px;font-size:13px;min-height:61px}
+#paymentMissingDetails summary{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pay-choice-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.pay-choice-actions button{padding:8px 10px;border-radius:9px;background:#eaf2ff;color:#1f559a;font-size:12px;font-weight:800}
+.dialog-label{font-weight:800;font-size:14px;margin-top:18px}
+#saveWin:disabled{opacity:.42;cursor:not-allowed}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom));background:#223555;color:white;padding:12px 18px;border-radius:12px;font-size:13px;pointer-events:none;z-index:20;opacity:0;transition:opacity .2s;max-width:90%;text-align:center}
+.toast.show{opacity:1}
+
+/* 月間ダッシュボード */
+.month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 12px}
+.month-nav button{border-radius:10px;padding:9px 14px;background:#e7eefb;color:#234d89;font-weight:850}
+.month-label{font-size:21px;font-weight:850}
+.month-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.month-kpi{padding:14px;background:#fff;border:1px solid #eaf0f6;border-radius:17px;box-shadow:var(--shadow)}
+.month-kpi .small{font-size:12px}
+.month-kpi strong{font-size:27px;display:block;margin:3px 0 2px;font-variant-numeric:tabular-nums;line-height:1.3}
+.month-kpi strong i{font-size:13px;font-weight:600;font-style:normal;color:var(--muted)}
+.month-hero{border:1px solid #cfdefc;background:linear-gradient(135deg,#e9f2ff,#f8fbff);border-radius:18px;padding:16px;margin-bottom:10px}
+.month-progress{height:11px;border-radius:15px;background:#d6e3f7;overflow:hidden;margin:10px 0}
+.month-progress div{height:100%;background:linear-gradient(90deg,#2367e8,#16ae88);max-width:100%;border-radius:15px;transition:width .2s}
+.stat-table{width:100%;border-collapse:collapse;font-size:13px}
+.stat-table td{padding:10px 5px;border-bottom:1px solid #eaf0f6}
+.stat-table tr:last-child td{border-bottom:0}
+.stat-table td:last-child{text-align:right;font-weight:800}
+.input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:block;font-size:12px;color:var(--muted);font-weight:650}
+.field input,.field textarea{display:block;width:100%;margin-top:5px;font:inherit;color:var(--navy);font-size:16px;border:1px solid #dce4f0;border-radius:10px;padding:10px;background:#fff}
+.field textarea{font-size:14px;min-height:65px}
+.field input[type=number]{font-variant-numeric:tabular-nums}
+.settings-group{border-top:1px solid var(--line);padding-top:14px;margin-top:16px}
+.settings-group h3{font-size:14px;margin:0 0 10px;color:#32496b}
+.guide{color:var(--muted);font-size:12px;line-height:1.6}
+.tag{background:#e7f6ed;color:#0c8557;padding:4px 8px;border-radius:8px;font-size:11px;font-weight:800}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0 8px}
+.status-grid button{background:#f4f7fd;padding:10px 5px;border:1.5px solid #dfe6f2;border-radius:10px;font-size:13px;font-weight:750;color:#3c5575}
+.status-grid button.selected{background:#e5f7ed;border-color:var(--green);color:#0a784f}
+.detail-checkbox{display:flex;align-items:center;gap:8px;font-weight:700;color:#294468;font-size:14px;margin:12px 0}
+.detail-checkbox input{width:19px;height:19px;accent-color:#159d71}
+.day-status{background:#edf4ff;color:#2454a2;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:800}
+textarea#weeklyReport{min-height:230px}
+.month-shortbar{border:1px solid #cbdcf8;border-radius:16px;background:#eaf2ff;padding:11px 14px;margin:12px 0 8px}
+.month-shortbar strong{display:block;margin:3px 0;font-size:18px}
+.short-link{text-decoration:none;font-size:12px;font-weight:850;color:#2367e8;padding:10px;background:#fff;border-radius:9px;white-space:nowrap}
+.month-warning{background:#fff9e9;border-radius:10px;color:#91600b;padding:10px;margin:8px 0;font-size:12px;line-height:1.6}
+@media(min-width:470px){.month-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.month-kpi strong{font-size:24px}}
+
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>🔥 営業カウンター PRO 4</h1>
+<div class="subtitle" id="date"></div>
+</header>
+
+<div class="month-shortbar">
+  <div class="flex"><div><div class="small" id="shortMonth">📈 今月の実績</div><strong id="shortStats">—</strong><div class="small" id="shortRates">—</div></div><a href="#monthlyDetails" class="short-link">月間詳細 ↓</a></div>
+</div>
+<h2>☀️ 今日のカウンター</h2>
+<div class="grid">
+  <div class="card"><div class="small">本日の母数</div><div class="value" id="total">0</div><div class="unit">目標 20母数</div><div class="bar"><div class="fill" id="bar1"></div></div></div>
+  <div class="card"><div class="small">本日の獲得</div><div class="value" id="sales">0</div><div class="unit">目標 3件</div><div class="bar"><div class="fill" id="bar2" style="background:var(--green)"></div></div></div>
+</div>
+<div class="card" style="margin-top:11px"><div class="flex"><div><div class="small">本日の総合獲得率</div><div class="value" id="rate" style="font-size:34px">0%</div></div><div class="small">獲得 ÷ 母数</div></div></div>
+
+<h2>📊 アプローチ母数</h2>
+<div class="section-note">声をかけたら「＋1」。獲得したときは下の緑ボタンから内訳を登録！</div>
+<div class="item"><div class="flex"><div style="flex:1"><div class="label">🎯 カットイン</div><div class="note" id="cut-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="cut">0</div><button class="add" onclick="addApproach('cut')">＋1</button></div></div>
+<div class="item"><div class="flex"><div style="flex:1"><div class="label">🛍️ 物販</div><div class="note" id="product-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="product">0</div><button class="add" onclick="addApproach('product')">＋1</button></div></div>
+<div class="item"><div class="flex"><div style="flex:1"><div class="label">🥤 試飲</div><div class="note" id="sample-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="sample">0</div><button class="add" onclick="addApproach('sample')">＋1</button></div></div>
+
+<h2>🏆 獲得記録</h2>
+<div class="item">
+  <div class="flex"><div><div class="label">本日の獲得件数</div><div class="note">手法・商材・決済方法を選んで記録</div></div><div class="count" id="sales2">0</div></div>
+  <button class="primary wide" onclick="openWin('new')">🔥 獲得 ＋1件を記録</button>
+  <div id="today-unknown" class="note" style="margin-top:12px"></div>
+  <button class="secondary wide" id="classifyToday" style="display:none" onclick="openWin('classify',dateKey())">過去の未分類獲得に内訳を付ける</button>
+</div>
+<div class="card">
+  <div class="label">💧 本日の商材別内訳</div>
+  <div class="split"><div class="metric"><div class="small">🏞️ 天然水</div><b id="natural">0</b><div class="unit">件</div></div><div class="metric"><div class="small">🚰 浄水型</div><b id="filter">0</b><div class="unit">件</div></div></div>
+  <div class="progressline" id="todayPayments"></div>
+  <div class="progressline" id="otherWins"></div>
+</div>
+
+<h2 id="monthlyDetails">📈 月間ダッシュボード <span class="tag">NEW</span></h2>
+<div class="month-nav">
+  <button onclick="shiftMonth(-1)" aria-label="前月">◀</button>
+  <div class="month-label" id="monthLabel">今月</div>
+  <button onclick="shiftMonth(1)" aria-label="翌月">▶</button>
+</div>
+<div class="month-hero">
+  <div class="row"><span class="label">🎯 月間OK予算の達成率</span><span class="tag" id="progressTag">集計中</span></div>
+  <div class="value" style="margin:7px 0 0;font-size:35px" id="monthProgress">—</div>
+  <div class="month-progress"><div id="monthBar"></div></div>
+  <div class="row small"><span id="monthBudget">予算 — OK</span><span id="monthPace">進捗率 —</span></div>
+</div>
+<div class="month-kpis">
+  <div class="month-kpi"><div class="small">獲得 ET</div><strong id="monSales">0 <i>件</i></strong><div class="unit" id="monSalesTarget">目標 —ET</div></div>
+  <div class="month-kpi"><div class="small">OK 数</div><strong id="monOK">—</strong><div class="unit" id="monOKTarget">目標 —OK</div></div>
+  <div class="month-kpi"><div class="small">出勤数 / 予定</div><strong id="monDays">0 / 21</strong><div class="unit">0件の日も記録できる</div></div>
+  <div class="month-kpi"><div class="small">月間 AVE</div><strong id="monAvg">—</strong><div class="unit" id="monOKRate">OK率 —</div></div>
+</div>
+<div class="card" style="margin-top:10px">
+  <div class="row"><span class="label">📊 月間内訳</span><span class="small" id="monMonthInfo"></span></div>
+  <table class="stat-table"><tbody>
+    <tr><td>今月目標</td><td id="monTarget">—</td></tr>
+    <tr><td>今月予算</td><td id="monPlan">—</td></tr>
+    <tr><td>デジ着（手入力）</td><td id="monDigital">—</td></tr>
+    <tr><td>手法別の獲得</td><td id="monMethods">—</td></tr>
+    <tr><td>天然水 / 浄水型</td><td id="monKinds">—</td></tr>
+    <tr><td>PAS</td><td id="monPAS">—</td></tr>
+    <tr><td>クレカ / キャリア / 口座</td><td id="monPayments">—</td></tr>
+    <tr><td>クレカ率（全獲得ベース）</td><td id="monCreditRate">—</td></tr>
+    <tr><td>5年 / 3年</td><td id="monTerms">—</td></tr>
+    <tr><td>Locca</td><td id="monLocca">—</td></tr>
+  </tbody></table>
+  <div class="guide" id="monthCompleteness"></div>
+</div>
+<div class="item" id="pendingSection" style="display:none">
+  <div class="label">⏳ OK確認待ち案件</div>
+  <p class="guide">獲得時に「確認中」にした案件は、ここからOK・NGへ変更できます。</p>
+  <div id="pendingRecords"></div>
+</div>
+<details class="item" id="paymentMissingDetails" style="display:none;margin-top:10px">
+  <summary>💳 決済未登録の案件 <span id="missingPayCount" class="pill orange">0件</span></summary>
+  <p class="guide">以前の記録で決済方法が未入力の案件です。分かる分だけ後から登録できます（獲得数は増えません）。</p>
+  <div id="missingPaymentList"></div>
+</details>
+<details class="item" style="margin-top:10px" id="configBox">
+  <summary>⚙️ 月間目標・不足分の補完（最初だけ設定）</summary>
+  <p class="guide">目標と予算は別です。月度の初期設定は「前月25日〜当月24日」です。集計開始日を1にすれば通常のカレンダー月にできます。旧アプリが保存していなかったOK・決済の内訳は補完してください。決済未登録の獲得は、上の一覧からも入力できます。</p>
+  <div class="settings-group" style="border-top:0;padding-top:0"><h3>目標・予算</h3><div class="input-grid" id="targetsGrid"></div></div>
+  <div class="settings-group"><h3>旧アプリ・記録開始前の不足分</h3><div class="input-grid" id="adjustGrid"></div>
+  <p class="guide">「記録外のET・出勤」はアプリに存在しない分だけ追加。OK・決済・5年等は旧記録のうち詳細を記録していない分を補完。二重計上に注意。</p></div>
+  <div class="settings-group"><h3>デジ着</h3><div class="input-grid" id="digitalGrid"></div></div>
+</details>
+<div class="item" style="margin-top:10px">
+  <div class="row"><div class="label">📅 出勤チェック</div><button class="day-status" id="workedButton" onclick="toggleWorked()">今日を出勤として記録</button></div>
+  <div class="guide">母数や獲得がある日は自動で出勤扱い。0件・0母数の日だけこのボタンを押せば、AVEの出勤数に含まれます。</div>
+</div>
+
+
+<h2>🔎 直近7日間の分析</h2>
+<div class="item">
+  <div class="row"><span class="label">7日間の合計</span><span id="weekTotal" class="small"></span></div>
+  <div class="metrics">
+    <div class="mini"><small>カットイン</small><strong id="week-cut">0</strong><small id="week-cut-rate">成約率 -</small></div>
+    <div class="mini"><small>物販</small><strong id="week-product">0</strong><small id="week-product-rate">成約率 -</small></div>
+    <div class="mini"><small>試飲</small><strong id="week-sample">0</strong><small id="week-sample-rate">成約率 -</small></div>
+  </div>
+  <div class="split"><div class="metric"><span class="small">天然水</span><b id="week-natural">0</b></div><div class="metric"><span class="small">浄水型</span><b id="week-filter">0</b></div></div>
+  <div id="week-note" class="note" style="margin-top:12px"></div>
+</div>
+
+<h2>📅 直近7日間の履歴</h2>
+<div class="item" id="history"></div>
+
+
+<h2>✉️ 火曜日の行動予定メール <span class="tag">NEW</span></h2>
+<div class="item">
+  <div class="guide">月間数値は自動反映。文章だけ入力すれば毎週のメールを作れます。宛先・送信はGmailで確認してください。</div>
+  <div class="field" style="margin-top:12px">先週の改善点に対しての結果<textarea id="weeklyResult" placeholder="例：初動の獲得を早めたことで獲得数が伸びた" oninput="saveNotes()"></textarea></div>
+  <div class="field" style="margin-top:12px">良い点<textarea id="weeklyGood" placeholder="例：OK率100%を維持" oninput="saveNotes()"></textarea></div>
+  <div class="field" style="margin-top:12px">悪い点<textarea id="weeklyBad" placeholder="例：0の日を作ってしまった" oninput="saveNotes()"></textarea></div>
+  <div class="field" style="margin-top:12px">改善点<textarea id="weeklyImprove" placeholder="例：5件目、6件目を狙い母数を増やす" oninput="saveNotes()"></textarea></div>
+  <div class="field" style="margin-top:12px">先週の稼働場所<input id="weeklyPlace" placeholder="ヨドバシカメラ マルチメディア博多" oninput="saveNotes()"></div>
+  <div class="field" style="margin-top:12px">今週の目標・意気込み<textarea id="weeklyGoal" placeholder="今週Ave4を狙ってやります！" oninput="saveNotes()"></textarea></div>
+  <div class="guide" id="weekRange" style="margin:13px 0 7px"></div>
+  <textarea id="weeklyReport" readonly aria-label="火曜日の行動予定メール文面"></textarea>
+  <button class="primary wide" style="background:var(--blue)" onclick="copyText('weeklyReport')">📋 火曜日のメール全文をコピー</button>
+</div>
+
+<h2>📋 営業日報</h2>
+<div class="item">
+  <div class="note" style="margin:0 0 10px">そのままチャットに貼って、営業分析に使える！</div>
+  <textarea id="report" readonly aria-label="本日の日報"></textarea>
+  <button class="primary wide" onclick="copyReport()" style="background:var(--blue)">📋 今日の日報をコピー</button>
+</div>
+<div class="actions">
+  <button class="secondary" onclick="undo()">↩ 直前の操作を戻す</button>
+  <button class="secondary" onclick="resetToday()">今日をリセット</button>
+  <button class="secondary" onclick="backup()">💾 全記録バックアップ</button>
+  <button class="secondary" onclick="document.getElementById('restoreInput').click()">📂 バックアップ復元</button>
+  <input id="restoreInput" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
+</div>
+<footer>SALES COUNTER PRO 4 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
+</main>
+
+<dialog id="winDialog">
+  <div class="dialog-body">
+    <div class="dialog-head"><h2 id="dialogTitle">🔥 獲得を記録</h2><button class="close" aria-label="閉じる" onclick="closeWin()">✕</button></div>
+    <div class="note" id="dialogNote" style="margin:8px 0 16px"></div>
+    <div class="dialog-label">① どの手法で獲得した？</div>
+    <div class="choice-grid" id="methodChoices">
+      <button class="choice" data-method="cut" onclick="chooseMethod('cut')">🎯 カットイン</button>
+      <button class="choice" data-method="product" onclick="chooseMethod('product')">🛍️ 物販</button>
+      <button class="choice" data-method="sample" onclick="chooseMethod('sample')">🥤 試飲</button>
+      <button class="choice" data-method="other" onclick="chooseMethod('other')">🔁 戻り・その他</button>
+    </div>
+    <div class="dialog-label">② 天然水？ 浄水型？</div>
+    <div class="choice-grid" id="kindChoices">
+      <button class="choice kind" data-kind="natural" onclick="chooseKind('natural')">🏞️ 天然水</button>
+      <button class="choice kind" data-kind="filter" onclick="chooseKind('filter')">🚰 浄水型</button>
+    </div>
+
+    <div class="dialog-label">③ 決済方法はどれ？ <span class="small" id="payRequired">（必須）</span></div>
+    <div class="pay-grid" id="payChoices">
+      <button class="choice pay" data-pay="credit" onclick="choosePay('credit')">💳<br>クレカ</button>
+      <button class="choice pay" data-pay="carrier" onclick="choosePay('carrier')">📱<br>キャリア</button>
+      <button class="choice pay" data-pay="account" onclick="choosePay('account')">🏦<br>口座</button>
+    </div>
+    <details id="dealDetails" class="settings-group" style="margin:4px 0 14px">
+      <summary>📑 OK状況・契約年数・PASなど（任意）</summary>
+      <p class="guide">OK状況・5年・Loccaなども登録すると、火曜日のメールに自動集計されます。未入力項目は推測しません。</p>
+      <div class="dialog-label">④ OK状況</div>
+      <div class="status-grid" id="statusChoices">
+        <button data-status="ok" onclick="chooseStatus('ok')">✅ OK</button>
+        <button data-status="pending" onclick="chooseStatus('pending')">⏳ 確認中</button>
+        <button data-status="ng" onclick="chooseStatus('ng')">✕ NG</button>
+      </div>
+      <div class="dialog-label">⑤ 契約期間</div>
+      <div class="status-grid"><button data-term="5" onclick="chooseTerm('5')">5年</button><button data-term="3" onclick="chooseTerm('3')">3年</button><button data-term="other" onclick="chooseTerm('other')">その他</button></div>
+      <label class="detail-checkbox"><input type="checkbox" id="dealPAS"> PAS対象</label>
+      <label class="detail-checkbox"><input type="checkbox" id="dealLocca"> Locca</label>
+    </details>
+    <button class="primary" id="saveWin" onclick="saveWin()" disabled>獲得を保存する</button>
+    <div class="guide" style="text-align:center;margin-top:9px" id="winFooter">手法・商材・決済を選んだら保存！</div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// 初代アプリと同じ保存先。既存の母数・獲得件数を引き継ぐ。
+const STORE="sales-counter-v1";
+const CONFIG_STORE="sales-counter-monthly-v3";
+const METHODS={cut:"カットイン",product:"物販",sample:"試飲",other:"戻り・その他"};
+const KINDS={natural:"天然水",filter:"浄水型"};
+let data={};
+try{const raw=JSON.parse(localStorage.getItem(STORE)||"{}");if(raw&&typeof raw==="object"&&!Array.isArray(raw))data=raw;}catch(e){data={};}
+let last=null;
+let modal={mode:"new",day:"",method:"",kind:"",status:"",term:"",pay:""};
+let toastTimeout;
+function dateKey(d=new Date()){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function empty(){return {cut:0,product:0,sample:0,sales:0,records:[]};}
+function day(k=dateKey()){
+  if(!data[k]||typeof data[k]!=="object")data[k]=empty();
+  const r=data[k];
+  for(const f of ["cut","product","sample","sales"]){
+    if(!Number.isFinite(Number(r[f]))||Number(r[f])<0)r[f]=0;
+    else r[f]=Math.floor(Number(r[f]));
+  }
+  if(!Array.isArray(r.records))r.records=[];
+  return r;
+}
+function records(r){return (r.records||[]).filter(x=>x&&METHODS[x.method]&&KINDS[x.kind]);}
+function unknown(r){return Math.max(0,r.sales-records(r).length);}
+function methodWins(r,m){return records(r).filter(x=>x.method===m).length;}
+function kindWins(r,k){return records(r).filter(x=>x.kind===k).length;}
+function pct(n,d){return d?(100*n/d).toFixed(1)+"%":"—";}
+function save(){
+  try{localStorage.setItem(STORE,JSON.stringify(data));}
+  catch(e){alert("記録を保存できませんでした。ブラウザの保存領域を確認してください。");}
+}
+function showToast(message){
+  const t=document.getElementById("toast");t.textContent=message;t.classList.add("show");
+  clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>t.classList.remove("show"),2400);
+}
+function addApproach(method){
+  if(!["cut","product","sample"].includes(method))return;
+  const k=dateKey();day(k)[method]++;
+  last={action:"approach",day:k,method};save();render();
+  showToast(METHODS[method]+" ＋1母数");
+}
+function openWin(mode="new",k=dateKey()){
+  const r=day(k);
+  if(mode==="classify"&&unknown(r)<=0){showToast("未分類の獲得はありません");return;}
+  modal={mode,day:k,method:"",kind:"",status:"",term:"",pay:""};
+  document.getElementById("dealDetails").open=false;
+  document.getElementById("dealPAS").checked=false;
+  document.getElementById("dealLocca").checked=false;
+  document.getElementById("dialogTitle").textContent=mode==="new"?"🔥 新しい獲得を記録":"📝 以前の獲得を分類";
+  document.getElementById("payRequired").textContent=mode==="new"?"（必須）":"（分かる場合のみ）";
+  document.getElementById("winFooter").textContent=mode==="new"?"手法・商材・決済を選んだら保存！":"手法・商材を選択。決済が分かれば一緒に登録！";
+  document.getElementById("dialogNote").textContent=mode==="new"?"3つを選べば獲得＋1。OK状況の未選択は『確認中』になり、後から変更できます。":k+" の未分類 "+unknown(r)+"件に内訳を付けます。決済方法が不明なら未選択でもOK。獲得総数は増えません。";
+  document.getElementById("saveWin").textContent=mode==="new"?"🔥 獲得 ＋1件を保存":"この1件の内訳を登録";
+  refreshChoices();
+  document.getElementById("winDialog").showModal();
+}
+function closeWin(){document.getElementById("winDialog").close();}
+function chooseMethod(m){if(!METHODS[m])return;modal.method=m;refreshChoices();}
+function chooseKind(k){if(!KINDS[k])return;modal.kind=k;refreshChoices();}
+function chooseStatus(s){modal.status=modal.status===s?"":s;refreshChoices();}
+function chooseTerm(s){modal.term=modal.term===s?"":s;refreshChoices();}
+function choosePay(s){modal.pay=modal.pay===s?"":s;refreshChoices();}
+function refreshChoices(){
+  document.querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("selected",b.dataset.status===modal.status));
+  document.querySelectorAll("[data-term]").forEach(b=>b.classList.toggle("selected",b.dataset.term===modal.term));
+  document.querySelectorAll("[data-pay]").forEach(b=>b.classList.toggle("selected",b.dataset.pay===modal.pay));
+  document.querySelectorAll("[data-method]").forEach(b=>b.classList.toggle("selected",b.dataset.method===modal.method));
+  document.querySelectorAll("[data-kind]").forEach(b=>b.classList.toggle("selected",b.dataset.kind===modal.kind));
+  document.getElementById("saveWin").disabled=!modal.method||!modal.kind||(modal.mode==="new"&&!modal.pay);
+}
+function saveWin(){
+  if(!METHODS[modal.method]||!KINDS[modal.kind]||(modal.mode==="new"&&!modal.pay))return;
+  const r=day(modal.day);
+  if(modal.mode==="classify"&&unknown(r)<=0){closeWin();render();return;}
+  const rec={id:Date.now()+"-"+Math.random().toString(36).slice(2),method:modal.method,kind:modal.kind,time:new Date().toISOString(),
+    status:modal.status||(modal.mode==="new"?"pending":null),term:modal.term||null,pay:modal.pay||null,
+    pas:document.getElementById("dealPAS").checked||false,locca:document.getElementById("dealLocca").checked||false};
+  r.records.push(rec);
+  if(modal.mode==="new")r.sales++;
+  last={action:modal.mode==="new"?"newWin":"classify",day:modal.day,id:rec.id};
+  const mode=modal.mode;
+  closeWin();save();render();
+  showToast(mode==="new"?"🔥 1件獲得！ナイス！":"✅ 過去の獲得を分類したよ！");
+}
+function undo(){
+  if(!last){alert("戻せる操作がありません（ページを開き直すと直前操作はリセットされます）");return;}
+  const r=day(last.day);
+  if(last.action==="approach"&&r[last.method]>0)r[last.method]--;
+  if(last.action==="newWin"||last.action==="classify"){
+    const i=r.records.findIndex(x=>x.id===last.id);
+    if(i>=0){r.records.splice(i,1);if(last.action==="newWin"&&r.sales>0)r.sales--;}
+  }
+  last=null;save();render();showToast("直前の操作を戻したよ");
+}
+function resetToday(){
+  if(confirm("今日の母数と獲得記録をすべてリセットしますか？\nこの操作は取り消せません。")){
+    data[dateKey()]=empty();last=null;save();render();showToast("今日の記録をリセットしました");
+  }
+}
+function datePast(i){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-i);return dateKey(d);}
+function buildReport(k=dateKey()){
+  const t=day(k),total=t.cut+t.product+t.sample;
+  const lines=[
+    "🔥 営業日報（"+k+"）",
+    "母数："+total+"／20　獲得："+t.sales+"／3　総合獲得率："+pct(t.sales,total),
+    "【手法別】",
+    ...["cut","product","sample"].map(m=>"・"+METHODS[m]+"："+t[m]+"母数／"+methodWins(t,m)+"件（"+pct(methodWins(t,m),t[m])+"）"),
+    "・戻り・その他："+methodWins(t,"other")+"件",
+    "【商材別】",
+    "・天然水："+kindWins(t,"natural")+"件",
+    "・浄水型："+kindWins(t,"filter")+"件",
+    "【決済別】",
+    "・クレカ："+records(t).filter(x=>x.pay==="credit").length+"件",
+    "・キャリア："+records(t).filter(x=>x.pay==="carrier").length+"件",
+    "・口座："+records(t).filter(x=>x.pay==="account").length+"件"
+  ];
+  const payKnown=records(t).filter(x=>["credit","carrier","account"].includes(x.pay)).length;
+  if(payKnown===t.sales&&t.sales)lines.push("・クレカ率："+pct(records(t).filter(x=>x.pay==="credit").length,t.sales));
+  else if(t.sales)lines.push("※決済未登録の獲得："+(t.sales-payKnown)+"件（クレカ率は暫定）");
+  if(unknown(t))lines.push("※未分類の獲得："+unknown(t)+"件（旧記録など）");
+  return lines.join("\n");
+}
+async function copyText(id){
+  const el=document.getElementById(id),txt=el.value;
+  try{
+    if(!navigator.clipboard?.writeText)throw new Error("unsupported");
+    await navigator.clipboard.writeText(txt);showToast("📋 コピーしたよ！");
+  }catch(e){
+    el.focus();el.select();
+    try{if(document.execCommand("copy")){showToast("📋 コピーしたよ！");return;}}catch(e2){}
+    alert("全文を選択しました。長押ししてコピーしてください。");
+  }
+}
+async function copyReport(){
+  const txt=document.getElementById("report").value;
+  try{
+    if(!navigator.clipboard||!navigator.clipboard.writeText)throw Error("unsupported");
+    await navigator.clipboard.writeText(txt);showToast("📋 日報をコピーしたよ！");
+  }catch(e){
+    const field=document.getElementById("report");field.focus();field.select();
+    try{if(document.execCommand("copy")){showToast("📋 日報をコピーしたよ！");return;}}catch(err){}
+    alert("日報を選択しました。表示された文章を長押ししてコピーしてください。");
+  }
+}
+function backup(){
+  try{
+    const blob=new Blob([JSON.stringify({version:4,salesData:data,monthConfig:monthConfig,weeklyNotes:weeklyNotes},null,2)],{type:"application/json;charset=utf-8"});
+    const u=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=u;a.download="sales-counter-pro4-backup-"+dateKey()+".json";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),1000);showToast("バックアップファイルを保存してね！");
+  }catch(e){alert("バックアップに失敗しました。");}
+}
+async function restoreBackup(event){
+  const input=event.target,file=input.files&&input.files[0];
+  if(!file)return;
+  try{
+    const incoming=JSON.parse(await file.text());
+    const isVersioned=incoming&&(incoming.version===3||incoming.version===4)&&incoming.salesData;
+    const restoredData=isVersioned?incoming.salesData:incoming;
+    if(!restoredData||typeof restoredData!=="object"||Array.isArray(restoredData)||
+       !Object.keys(restoredData).every(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&restoredData[k]&&typeof restoredData[k]==="object")){
+      throw Error("このアプリのバックアップ形式ではありません");
+    }
+    if(!confirm("バックアップの内容で、現在の全記録を上書きしますか？\n戻すことはできません。"))return;
+    data=restoredData;
+    if(isVersioned){monthConfig=incoming.monthConfig||{};weeklyNotes=incoming.weeklyNotes||{};saveConfigs();}
+    last=null;save();render();showToast("📂 バックアップを復元しました");
+  }catch(e){alert("復元できませんでした："+e.message);}
+  finally{input.value="";}
+}
+
+// -------- 月間 / 火曜日報告モジュール：既存STOREは変更しない --------
+let monthConfig={},weeklyNotes={};
+try{
+  const v=JSON.parse(localStorage.getItem(CONFIG_STORE)||"{}");
+  monthConfig=v.monthConfig&&typeof v.monthConfig==="object"?v.monthConfig:{};
+  weeklyNotes=v.weeklyNotes&&typeof v.weeklyNotes==="object"?v.weeklyNotes:{};
+}catch(e){}
+function businessMonthOf(date=dateKey()){
+  const [y,m,d]=date.split("-").map(Number);
+  return dateKey(new Date(y,m-1+(d>=25?1:0),1,12)).slice(0,7);
+}
+let selectedMonth=businessMonthOf();
+const TARGET_FIELDS=[
+  ["targetET","今月目標 ET",70],["targetOK","今月目標 OK",60],
+  ["budgetET","今月予算 ET",50],["budgetOK","今月予算 OK",40],
+  ["plannedDays","出勤予定日数",21],["startDay","集計開始日（1～28）",25]
+];
+const ADJ_FIELDS=[
+  ["extraET","アプリ未記録の獲得 ET",0],["extraDays","アプリ未記録の出勤日",0],
+  ["oldOK","旧記録・未入力分のOK数",0],["oldPAS","旧記録のPAS件数",0],
+  ["oldCredit","旧記録のクレカ件数",0],["oldCarrier","旧記録のキャリア件数",0],
+  ["oldAccount","旧記録の口座件数",0],["old5","旧記録の5年件数",0],
+  ["old3","旧記録の3年件数",0],["oldLocca","旧記録のLocca件数",0],
+  ["extraNatural","アプリ未記録の天然水件数",0],["extraFilter","アプリ未記録の浄水型件数",0]
+];
+function configFor(month=selectedMonth){
+  if(!monthConfig[month]||typeof monthConfig[month]!=="object")monthConfig[month]={};
+  return monthConfig[month];
+}
+function cfgValue(k,month=selectedMonth){
+  const x=configFor(month)[k];
+  const def=TARGET_FIELDS.find(f=>f[0]===k)?.[2]??0;
+  return x===""||x===null||x===undefined?def:Math.max(0,Number(x)||0);
+}
+function hasCfg(k,month=selectedMonth){return Object.hasOwn(configFor(month),k)&&configFor(month)[k]!==""&&configFor(month)[k]!==null;}
+function saveConfigs(){
+  try{localStorage.setItem(CONFIG_STORE,JSON.stringify({monthConfig,weeklyNotes}));}
+  catch(e){alert("設定の保存に失敗しました。空き容量を確認してね。");}
+}
+function shiftMonth(delta){
+  const [yy,mm]=selectedMonth.split("-").map(Number);
+  const d=new Date(yy,mm-1+delta,1,12);
+  selectedMonth=dateKey(d).slice(0,7);last=null;render();
+}
+function createConfigFields(){
+  for(const [id,container] of [[TARGET_FIELDS,"targetsGrid"],[ADJ_FIELDS,"adjustGrid"],[["digitalOK","デジ着（累計OK数）",0],"digitalGrid"]]){
+    const root=document.getElementById(container);root.replaceChildren();
+    for(const [key,label,def] of (Array.isArray(id[0])?id:[id])){
+      const field=document.createElement("label");field.className="field";field.textContent=label;
+      const input=document.createElement("input");input.type="number";input.min="0";input.step="1";
+      input.dataset.config=key;
+      if(key==="startDay"){input.min="1";input.max="28";}
+      input.addEventListener("change",()=>{
+        const val=input.value.trim();
+        if(val==="")delete configFor()[key];
+        else configFor()[key]=key==="startDay"?Math.max(1,Math.min(28,Math.floor(Number(val)||25))):Math.max(0,Math.floor(Number(val)||0));
+        saveConfigs();renderMonth();renderWeeklyReport();
+      });
+      field.append(input);root.append(field);
+    }
+  }
+}
+function fillConfigFields(){
+  document.querySelectorAll("[data-config]").forEach(input=>{
+    const k=input.dataset.config;
+    input.value=hasCfg(k)?cfgValue(k):"";
+    input.placeholder=String(TARGET_FIELDS.find(f=>f[0]===k)?.[2]??0);
+  });
+}
+function number(n){return Number(n||0).toLocaleString("ja-JP");}
+function rate0(n,d){return d?Math.round(n/d*100)+"%":"—";}
+function rate1(n,d){return d?Number((n/d*100).toFixed(1))+"%":"—";}
+function valueText(n,known=true){return known?number(n):"—";}
+function getPeriodBounds(month){
+  const [yy,mm]=month.split("-").map(Number);
+  const startDay=Math.min(28,Math.max(1,cfgValue("startDay",month)));
+  const first=startDay===1?new Date(yy,mm-1,1,12):new Date(yy,mm-2,startDay,12);
+  const last=startDay===1?new Date(yy,mm,0,12):new Date(yy,mm-1,startDay-1,12);
+  return {start:dateKey(first),end:dateKey(last)};
+}
+function dateInPeriod(k,month){
+  const p=getPeriodBounds(month);
+  return k>=p.start && k<=p.end;
+}
+function getMonthly(month=selectedMonth){
+  let sales=0,days=0,mothers=0, natural=0,filter=0;
+  let cut=0,product=0,sample=0,other=0,pas=0,credit=0,carrier=0,account=0,term5=0,term3=0,locca=0,ok=0;
+  let legacy=0,unknownStatus=0,missingPayment=0,missingTerm=0;
+  for(const [k,r] of Object.entries(data)){
+    if(!dateInPeriod(k,month)||!r||typeof r!=="object")continue;
+    const daySales=Math.max(0,Number(r.sales)||0);
+    const counts=["cut","product","sample"].map(m=>Math.max(0,Number(r[m])||0));
+    sales+=daySales;mothers+=counts.reduce((a,b)=>a+b,0);
+    if(r.worked===true||daySales>0||counts.some(n=>n>0))days++;
+    const recs=records(r);
+    legacy+=Math.max(0,daySales-recs.length);
+    for(const rec of recs){
+      if(rec.method==="cut")cut++;
+      if(rec.method==="product")product++;
+      if(rec.method==="sample")sample++;
+      if(rec.method==="other")other++;
+      if(rec.kind==="natural")natural++;
+      if(rec.kind==="filter")filter++;
+      if(rec.status==="ok")ok++;
+      if(!["ok","ng","pending"].includes(rec.status))unknownStatus++;
+      if(rec.term==="5")term5++;
+      else if(rec.term==="3")term3++;
+      else if(!rec.term)missingTerm++;
+      if(rec.pay==="credit")credit++;
+      else if(rec.pay==="carrier")carrier++;
+      else if(rec.pay==="account")account++;
+      else missingPayment++;
+      if(rec.pas===true)pas++;
+      if(rec.locca===true)locca++;
+    }
+  }
+  sales+=cfgValue("extraET",month);days+=cfgValue("extraDays",month);
+  natural+=cfgValue("extraNatural",month);filter+=cfgValue("extraFilter",month);
+  ok+=cfgValue("oldOK",month);
+  pas+=cfgValue("oldPAS",month);credit+=cfgValue("oldCredit",month);carrier+=cfgValue("oldCarrier",month);account+=cfgValue("oldAccount",month);
+  term5+=cfgValue("old5",month);term3+=cfgValue("old3",month);locca+=cfgValue("oldLocca",month);
+  const targetET=cfgValue("targetET",month),targetOK=cfgValue("targetOK",month);
+  const budgetET=cfgValue("budgetET",month),budgetOK=cfgValue("budgetOK",month),plannedDays=cfgValue("plannedDays",month);
+  const okKnown=hasCfg("oldOK",month)||!legacy&&!unknownStatus&&!cfgValue("extraET",month);
+  return {sales,days,mothers,natural,filter,cut,product,sample,other,pas,credit,carrier,account,term5,term3,locca,ok,okKnown,legacy,unknownStatus,missingPayment,missingTerm,targetET,targetOK,budgetET,budgetOK,plannedDays};
+}
+function renderMonth(){
+  const t=getMonthly(),month=selectedMonth;
+  const period=getPeriodBounds(month);
+  document.getElementById("monthLabel").textContent=month.replace("-","年")+"月度";
+  document.getElementById("shortMonth").textContent="📈 "+month.replace("-","年")+"月度（"+period.start.slice(5).replace("-","/")+"〜"+period.end.slice(5).replace("-","/")+"）";
+  document.getElementById("shortStats").textContent=t.sales+"ET / "+(t.okKnown?t.ok+"OK":"OK未入力");
+  document.getElementById("shortRates").textContent="達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"—")+" ・ AVE "+(t.days?(t.sales/t.days).toFixed(3):"—");
+  document.getElementById("monSales").innerHTML=number(t.sales)+" <i>件</i>";
+  document.getElementById("monSalesTarget").textContent="目標 "+t.targetET+" ET";
+  document.getElementById("monOK").textContent=t.okKnown?number(t.ok):"—";
+  document.getElementById("monOKTarget").textContent="目標 "+t.targetOK+" OK";
+  document.getElementById("monDays").textContent=t.days+" / "+t.plannedDays;
+  document.getElementById("monAvg").textContent=t.days?(t.sales/t.days).toFixed(3):"—";
+  document.getElementById("monOKRate").textContent="OK率 "+(t.okKnown?rate0(t.ok,t.sales):"—");
+  document.getElementById("monthProgress").textContent=t.okKnown?rate1(t.ok,t.budgetOK):"—";
+  document.getElementById("monthBar").style.width=t.okKnown&&t.budgetOK?Math.min(t.ok/t.budgetOK*100,100)+"%":"0%";
+  document.getElementById("monthBudget").textContent="予算 "+t.budgetOK+" OK";
+  const pace=t.okKnown&&t.days&&t.plannedDays&&t.budgetOK?Math.round(t.ok/(t.budgetOK*t.days/t.plannedDays)*100)+"%":"—";
+  document.getElementById("monthPace").textContent="進捗率 "+pace;
+  document.getElementById("progressTag").textContent=t.okKnown?(t.ok>=t.budgetOK?"予算達成！":"予算に挑戦中"):"OK数を補完してね";
+  document.getElementById("monTarget").textContent=t.targetET+"ET / "+t.targetOK+"OK";
+  document.getElementById("monPlan").textContent=t.budgetET+"ET / "+t.budgetOK+"OK";
+  document.getElementById("monDigital").textContent=hasCfg("digitalOK")?number(cfgValue("digitalOK"))+"OK":"未入力";
+  document.getElementById("monMethods").textContent="カットイン "+t.cut+" / 物販 "+t.product+" / 試飲 "+t.sample+" / その他 "+t.other;
+  document.getElementById("monKinds").textContent=t.natural+" / "+t.filter;
+  document.getElementById("monPAS").textContent=t.pas+"件（"+rate0(t.pas,t.sales)+"）";
+  document.getElementById("monPayments").textContent=t.credit+" / "+t.carrier+" / "+t.account;
+  const knownPays=t.credit+t.carrier+t.account;
+  document.getElementById("monCreditRate").textContent=t.sales?(rate1(t.credit,t.sales)+(knownPays<t.sales?"（未登録あり・暫定）":"")):"—";
+  document.getElementById("monTerms").textContent=t.term5+" / "+t.term3;
+  document.getElementById("monLocca").textContent=t.locca+"件（"+rate0(t.locca,t.sales)+"）";
+  document.getElementById("monMonthInfo").textContent=period.start.slice(5)+"〜"+period.end.slice(5)+" / 母数 "+t.mothers;
+  renderPending();
+  renderMissingPayments();
+  const warnings=[];
+  if(!t.okKnown)warnings.push("旧記録のOKが未入力です。⚙️『旧記録・未入力分のOK数』を設定すると達成率が出ます");
+  if(t.legacy)warnings.push("手法・商材が未分類の獲得 "+t.legacy+"件");
+  if(t.missingPayment)warnings.push("決済未登録 "+t.missingPayment+"件");
+  if(t.missingTerm)warnings.push("年数未登録 "+t.missingTerm+"件");
+  document.getElementById("monthCompleteness").textContent=warnings.length?"※ "+warnings.join(" / "):"※ 記録された詳細と手入力補正を集計しています。PAS・Locca等の未入力項目は0として計算します。";
+}
+function changeDealStatus(k,id,status){
+  const r=data[k];if(!r||!Array.isArray(r.records))return;
+  const rec=r.records.find(x=>x.id===id);if(!rec)return;
+  rec.status=status;save();render();showToast(status==="ok"?"✅ OKに変更":"✕ NGに変更");
+}
+function renderPending(){
+  const root=document.getElementById("pendingRecords");root.replaceChildren();
+  let found=0;
+  for(const [k,r] of Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0]))){
+    if(!dateInPeriod(k,selectedMonth)||!r||!Array.isArray(r.records))continue;
+    for(const rec of r.records){
+      if(rec.status!=="pending")continue;found++;
+      const wrap=document.createElement("div");wrap.className="history";
+      const label=document.createElement("div");label.className="note";
+      label.textContent=k.slice(5).replace("-","/")+" "+(METHODS[rec.method]||"")+"・"+(KINDS[rec.kind]||"");
+      const row=document.createElement("div");row.className="actions";row.style.marginTop="6px";
+      const yes=document.createElement("button");yes.className="secondary";yes.textContent="✅ OKにする";
+      yes.addEventListener("click",()=>changeDealStatus(k,rec.id,"ok"));
+      const no=document.createElement("button");no.className="secondary";no.textContent="✕ NGにする";
+      no.addEventListener("click",()=>changeDealStatus(k,rec.id,"ng"));
+      row.append(yes,no);wrap.append(label,row);root.append(wrap);
+    }
+  }
+  document.getElementById("pendingSection").style.display=found?"block":"none";
+}
+function changeDealPayment(k,id,pay){
+  if(!["credit","carrier","account"].includes(pay))return;
+  const r=data[k];if(!r||!Array.isArray(r.records))return;
+  const rec=r.records.find(x=>x.id===id);if(!rec)return;
+  rec.pay=pay;save();render();showToast("💳 決済方法を登録したよ！");
+}
+function renderMissingPayments(){
+  const root=document.getElementById("missingPaymentList");root.replaceChildren();
+  let count=0;
+  for(const [k,r] of Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0]))){
+    if(!dateInPeriod(k,selectedMonth)||!r||!Array.isArray(r.records))continue;
+    for(const rec of r.records){
+      if(!METHODS[rec.method]||!KINDS[rec.kind]||["credit","carrier","account"].includes(rec.pay))continue;
+      count++;
+      const wrap=document.createElement("div");wrap.className="history";
+      const label=document.createElement("div");label.className="note";
+      label.textContent=k.slice(5).replace("-","/")+" "+METHODS[rec.method]+"・"+KINDS[rec.kind];
+      const actions=document.createElement("div");actions.className="pay-choice-actions";
+      for(const [key,title] of [["credit","💳 クレカ"],["carrier","📱 キャリア"],["account","🏦 口座"]]){
+        const b=document.createElement("button");b.textContent=title;
+        b.addEventListener("click",()=>changeDealPayment(k,rec.id,key));actions.append(b);
+      }
+      wrap.append(label,actions);root.append(wrap);
+    }
+  }
+  document.getElementById("paymentMissingDetails").style.display=count?"block":"none";
+  document.getElementById("missingPayCount").textContent=count+"件";
+}
+function toggleWorked(){const r=day();r.worked=!r.worked;save();render();showToast(r.worked?"📅 今日を出勤として登録":"📅 出勤チェックを解除");}
+function currentWeekKey(){
+  const d=new Date();d.setHours(12,0,0,0);
+  d.setDate(d.getDate()-((d.getDay()+5)%7)); // 火曜始まり
+  return dateKey(d);
+}
+const NOTE_FIELDS=[["weeklyResult","result"],["weeklyGood","good"],["weeklyBad","bad"],["weeklyImprove","improve"],["weeklyPlace","place"],["weeklyGoal","goal"]];
+function notesFor(){return weeklyNotes[currentWeekKey()]||{};}
+function saveNotes(){
+  const w={};for(const [id,key] of NOTE_FIELDS)w[key]=document.getElementById(id).value;
+  weeklyNotes[currentWeekKey()]=w;saveConfigs();renderWeeklyReport();
+}
+function fillNotes(){const w=notesFor();for(const [id,key] of NOTE_FIELDS)document.getElementById(id).value=w[key]||"";}
+function buildWeeklyEmail(){
+  const t=getMonthly();const w=notesFor();
+  const pc=(n)=>t.sales?Math.round(n/t.sales*100)+"%":"—";
+  const ok=t.okKnown?t.ok+"OK":"未入力";
+  return [
+    "福島部長", "鍋屋MGR", "前田MGR", "近藤MGR", "倉地MGR", "", "お疲れ様です。",
+    "SS事業部 西日本チーム", "秋山大地です。", "", "今週の行動予定を送らせて頂きます。", "ご確認の程宜しくお願い致します。", "",
+    "●個人", "個人結果",
+    "・今月目標 "+t.targetET+"ET "+t.targetOK+"OK",
+    "・今月予算 "+t.budgetET+"ET "+t.budgetOK+"OK",
+    "・出勤日 "+t.plannedDays+"日",
+    "・出勤数 "+t.days+"日",
+    "・獲得数 "+t.sales+"件",
+    "・OK数 "+ok,
+    "・OK率 "+(t.okKnown?rate0(t.ok,t.sales):"未入力"),
+    "・AVE "+(t.days?(t.sales/t.days).toFixed(3):"—"),
+    "・デジ着 "+(hasCfg("digitalOK")?cfgValue("digitalOK")+"OK":"未入力"),
+    "・達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"未入力"),
+    "・進捗率 "+(t.okKnown&&t.days&&t.plannedDays&&t.budgetOK?rate0(t.ok,t.budgetOK*t.days/t.plannedDays):"未入力"),
+    "・PAS "+t.pas+"件 "+pc(t.pas),
+    "・クレカ "+t.credit+"件 "+pc(t.credit),
+    "・口座（請求書） "+t.account+"件 "+pc(t.account),
+    "・キャリア "+t.carrier+"件 "+pc(t.carrier),
+    "・Locca "+t.locca+"件 "+pc(t.locca),
+    "・5年 "+t.term5+"件 "+pc(t.term5),
+    "・3年 "+t.term3+"件 "+pc(t.term3),
+    "", "●先週の改善点に対しての結果",w.result||"（未入力）",
+    "", "●良い点",w.good||"（未入力）",
+    "", "●悪い点",w.bad||"（未入力）",
+    "", "●改善点",w.improve||"（未入力）",
+    "", "先週の稼働場所",w.place||"（未入力）",
+    "", "●今週の目標件数",w.goal||"（未入力）",
+    "", "今週も宜しくお願い致します！！"
+  ].join("\n");
+}
+function renderWeeklyReport(){
+  document.getElementById("weeklyReport").value=buildWeeklyEmail();
+  document.getElementById("weekRange").textContent="文章保存単位："+currentWeekKey()+"（火）からの1週間。月間数値は上で選択中の "+selectedMonth+" を反映";
+}
+function updateWorkedButton(){
+  const r=day();const b=document.getElementById("workedButton");
+  b.textContent=r.worked?"✅ 出勤チェック済み":"今日を出勤として記録";
+}
+createConfigFields();fillConfigFields();fillNotes();
+
+function render(){
+  const t=day(),total=t.cut+t.product+t.sample;
+  document.getElementById("date").textContent=new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+  for(const m of ["cut","product","sample"]){
+    document.getElementById(m).textContent=t[m];
+    document.getElementById(m+"-detail").textContent="獲得 "+methodWins(t,m)+"件 / 成約率 "+pct(methodWins(t,m),t[m]);
+  }
+  document.getElementById("sales").textContent=t.sales;
+  document.getElementById("sales2").textContent=t.sales;
+  document.getElementById("total").textContent=total;
+  document.getElementById("rate").textContent=pct(t.sales,total);
+  document.getElementById("bar1").style.width=Math.min(total/20*100,100)+"%";
+  document.getElementById("bar2").style.width=Math.min(t.sales/3*100,100)+"%";
+  document.getElementById("natural").textContent=kindWins(t,"natural");
+  document.getElementById("filter").textContent=kindWins(t,"filter");
+  const missing=unknown(t);
+  const payCounts={credit:0,carrier:0,account:0};
+  for(const r of records(t)){if(Object.hasOwn(payCounts,r.pay))payCounts[r.pay]++;}
+  document.getElementById("todayPayments").textContent="💳 クレカ "+payCounts.credit+"件（"+pct(payCounts.credit,t.sales)+"） / 📱 キャリア "+payCounts.carrier+"件 / 🏦 口座 "+payCounts.account+"件";
+  document.getElementById("otherWins").textContent=methodWins(t,"other")?"戻り・その他での獲得："+methodWins(t,"other")+"件":"";
+  document.getElementById("today-unknown").textContent=missing?"※既存データに内訳未登録の獲得が"+missing+"件あるよ。":"";
+  document.getElementById("classifyToday").style.display=missing?"block":"none";
+  let weekSales=0,weekTotal=0,weekUnknown=0,weeklyMethods={cut:0,product:0,sample:0},weeklyCounts={cut:0,product:0,sample:0},weeklyKinds={natural:0,filter:0};
+  const history=document.getElementById("history");history.replaceChildren();
+  for(let i=0;i<7;i++){
+    const k=datePast(i),r=day(k),n=r.cut+r.product+r.sample;
+    weekSales+=r.sales;weekTotal+=n;weekUnknown+=unknown(r);
+    for(const m of ["cut","product","sample"]){weeklyMethods[m]+=methodWins(r,m);weeklyCounts[m]+=r[m];}
+    for(const kind of ["natural","filter"])weeklyKinds[kind]+=kindWins(r,kind);
+    const block=document.createElement("div");block.className="history";
+    const head=document.createElement("div");head.className="historyhead";
+    const name=document.createElement("span");name.className="history-title";name.textContent=k.slice(5).replace("-","/")+(i===0?"（今日）":"");
+    const nums=document.createElement("span");nums.className="history-number";nums.textContent="母数 "+n+" ／ 獲得 "+r.sales+"件";
+    head.append(name,nums);block.append(head);
+    if(r.sales){
+      const detail=document.createElement("div");detail.className="note";
+      detail.textContent="天然水 "+kindWins(r,"natural")+"・浄水型 "+kindWins(r,"filter")+" ／ カットイン "+methodWins(r,"cut")+"・物販 "+methodWins(r,"product")+"・試飲 "+methodWins(r,"sample")+(methodWins(r,"other")?"・戻り等 "+methodWins(r,"other"):"");
+      block.append(detail);
+      if(unknown(r)>0){
+        const b=document.createElement("button");b.textContent="未分類 "+unknown(r)+"件 → 内訳を登録";
+        b.addEventListener("click",()=>openWin("classify",k));block.append(b);
+      }
+    }
+    history.append(block);
+  }
+  document.getElementById("weekTotal").textContent="母数 "+weekTotal+" ／ 獲得 "+weekSales+"件";
+  for(const m of ["cut","product","sample"]){
+    document.getElementById("week-"+m).textContent=weeklyMethods[m]+"件";
+    document.getElementById("week-"+m+"-rate").textContent="成約率 "+pct(weeklyMethods[m],weeklyCounts[m]);
+  }
+  document.getElementById("week-natural").textContent=weeklyKinds.natural;
+  document.getElementById("week-filter").textContent=weeklyKinds.filter;
+  document.getElementById("week-note").textContent=weekUnknown?"※直近7日間には内訳未分類の獲得が"+weekUnknown+"件あるため、手法・商材の合計は総獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数";
+  document.getElementById("report").value=buildReport();
+  fillConfigFields();renderMonth();renderWeeklyReport();updateWorkedButton();
+}
+render();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
+</script>
+</body>
+</html>
