@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f3f6fc">
-<title>営業カウンター PRO 4 - 決済別管理</title>
+<title>営業カウンター PRO 4.2 - OK管理</title>
 <style>
 :root{--navy:#13233f;--muted:#66758d;--blue:#2367e8;--green:#139e70;--bg:#f3f6fc;--line:#e6ebf3;--shadow:0 5px 22px rgba(22,47,85,.055)}
 *{box-sizing:border-box}
@@ -81,6 +81,12 @@ dialog::backdrop{background:#15233a94}
 .toast.show{opacity:1}
 
 /* 月間ダッシュボード */
+.status-deal-title{color:#354c6b;font-weight:700;font-size:13px;line-height:1.6}
+.status-edit-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.status-edit-actions .deal-state-option{font-size:12px;border-radius:9px;padding:10px 3px;background:#edf4ff;color:#2454a2;font-weight:750}
+.status-edit-actions .deal-state-option.active{background:#ddf6e9;color:#08663e;border:2px solid #23ab79;padding:8px 1px}
+#dealStatusDetails summary{line-height:1.6}
+
 .month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 12px}
 .month-nav button{border-radius:10px;padding:9px 14px;background:#e7eefb;color:#234d89;font-weight:850}
 .month-label{font-size:21px;font-weight:850}
@@ -123,7 +129,7 @@ textarea#weeklyReport{min-height:230px}
 <body>
 <main>
 <header>
-<h1>🔥 営業カウンター PRO 4</h1>
+<h1>🔥 営業カウンター PRO 4.2</h1>
 <div class="subtitle" id="date"></div>
 </header>
 
@@ -148,7 +154,7 @@ textarea#weeklyReport{min-height:230px}
   <div class="flex"><div><div class="label">本日の獲得件数</div><div class="note">手法・商材・決済方法を選んで記録</div></div><div class="count" id="sales2">0</div></div>
   <button class="primary wide" onclick="openWin('new')">🔥 獲得 ＋1件を記録</button>
   <div id="today-unknown" class="note" style="margin-top:12px"></div>
-  <button class="secondary wide" id="classifyToday" style="display:none" onclick="openWin('classify',dateKey())">過去の未分類獲得に内訳を付ける</button>
+  <button class="secondary wide" id="classifyToday" style="display:none" onclick="openWin('classify',dateKey())">以前の獲得に「手法・商材」を追加する</button>
 </div>
 <div class="card">
   <div class="label">💧 本日の商材別内訳</div>
@@ -172,8 +178,8 @@ textarea#weeklyReport{min-height:230px}
 <div class="month-kpis">
   <div class="month-kpi"><div class="small">獲得 ET</div><strong id="monSales">0 <i>件</i></strong><div class="unit" id="monSalesTarget">目標 —ET</div></div>
   <div class="month-kpi"><div class="small">OK 数</div><strong id="monOK">—</strong><div class="unit" id="monOKTarget">目標 —OK</div></div>
-  <div class="month-kpi"><div class="small">出勤数 / 予定</div><strong id="monDays">0 / 21</strong><div class="unit">0件の日も記録できる</div></div>
-  <div class="month-kpi"><div class="small">月間 AVE</div><strong id="monAvg">—</strong><div class="unit" id="monOKRate">OK率 —</div></div>
+  <div class="month-kpi"><div class="small">出勤数 / 予定</div><strong id="monDays">0 / 21</strong><div class="unit">母数の入力で自動カウント</div></div>
+  <div class="month-kpi"><div class="small">OK AVE</div><strong id="monAvg">—</strong><div class="unit" id="monOKRate">OK率 —</div></div>
 </div>
 <div class="card" style="margin-top:10px">
   <div class="row"><span class="label">📊 月間内訳</span><span class="small" id="monMonthInfo"></span></div>
@@ -191,28 +197,26 @@ textarea#weeklyReport{min-height:230px}
   </tbody></table>
   <div class="guide" id="monthCompleteness"></div>
 </div>
-<div class="item" id="pendingSection" style="display:none">
-  <div class="label">⏳ OK確認待ち案件</div>
-  <p class="guide">獲得時に「確認中」にした案件は、ここからOK・NGへ変更できます。</p>
-  <div id="pendingRecords"></div>
-</div>
+<details class="item" id="dealStatusDetails" style="display:none;margin-top:10px">
+  <summary>✅ OK・キャンセルを修正 <span id="statusRecordCount" class="pill">0件</span></summary>
+  <p class="guide">後からキャンセルが出たら、該当する案件の「✕ キャンセル/NG」を押してね。獲得件数はそのままでOK数だけ減り、OK AVEも自動更新されます。間違えて変更してもOKに戻せます。</p>
+  <div id="statusRecords"></div>
+</details>
 <details class="item" id="paymentMissingDetails" style="display:none;margin-top:10px">
   <summary>💳 決済未登録の案件 <span id="missingPayCount" class="pill orange">0件</span></summary>
   <p class="guide">以前の記録で決済方法が未入力の案件です。分かる分だけ後から登録できます（獲得数は増えません）。</p>
   <div id="missingPaymentList"></div>
 </details>
 <details class="item" style="margin-top:10px" id="configBox">
-  <summary>⚙️ 月間目標・不足分の補完（最初だけ設定）</summary>
-  <p class="guide">目標と予算は別です。月度の初期設定は「前月25日〜当月24日」です。集計開始日を1にすれば通常のカレンダー月にできます。旧アプリが保存していなかったOK・決済の内訳は補完してください。決済未登録の獲得は、上の一覧からも入力できます。</p>
+  <summary>⚙️ 月間目標・以前の記録を入力する</summary>
+  <p class="guide">ここは最初の設定や、過去分の数字を直したいときに使います。月度は初期設定で前月25日〜当月24日です。</p>
   <div class="settings-group" style="border-top:0;padding-top:0"><h3>目標・予算</h3><div class="input-grid" id="targetsGrid"></div></div>
-  <div class="settings-group"><h3>旧アプリ・記録開始前の不足分</h3><div class="input-grid" id="adjustGrid"></div>
-  <p class="guide">「記録外のET・出勤」はアプリに存在しない分だけ追加。OK・決済・5年等は旧記録のうち詳細を記録していない分を補完。二重計上に注意。</p></div>
+  <div class="settings-group"><h3>📝 カウンターで記録できなかった過去分</h3>
+  <p class="guide">例：以前のカウンターに獲得件数だけ残っていて、OKかどうか記録していない場合は「過去分のOK件数」に入力します。<strong>獲得済みの件数はもう一度入力しないでね。</strong> 個別案件を「OK・キャンセルを修正」で変更した場合は、その案件を過去分のOK件数に重複して含めないようにしてください。</p>
+  <div class="input-grid" id="adjustGrid"></div>
+  <p class="guide">「過去分のキャンセル」は個別案件を選べないときだけ入力。個別案件をキャンセルに変更した場合は入力不要です。決済・5年等も記録していない分だけ入力します。</p></div>
   <div class="settings-group"><h3>デジ着</h3><div class="input-grid" id="digitalGrid"></div></div>
 </details>
-<div class="item" style="margin-top:10px">
-  <div class="row"><div class="label">📅 出勤チェック</div><button class="day-status" id="workedButton" onclick="toggleWorked()">今日を出勤として記録</button></div>
-  <div class="guide">母数や獲得がある日は自動で出勤扱い。0件・0母数の日だけこのボタンを押せば、AVEの出勤数に含まれます。</div>
-</div>
 
 
 <h2>🔎 直近7日間の分析</h2>
@@ -258,7 +262,7 @@ textarea#weeklyReport{min-height:230px}
   <button class="secondary" onclick="document.getElementById('restoreInput').click()">📂 バックアップ復元</button>
   <input id="restoreInput" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
 </div>
-<footer>SALES COUNTER PRO 4 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
+<footer>SALES COUNTER PRO 4.2 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
 </main>
 
 <dialog id="winDialog">
@@ -350,15 +354,15 @@ function addApproach(method){
 }
 function openWin(mode="new",k=dateKey()){
   const r=day(k);
-  if(mode==="classify"&&unknown(r)<=0){showToast("未分類の獲得はありません");return;}
+  if(mode==="classify"&&unknown(r)<=0){showToast("詳細を入力していない過去の獲得はありません");return;}
   modal={mode,day:k,method:"",kind:"",status:"",term:"",pay:""};
   document.getElementById("dealDetails").open=false;
   document.getElementById("dealPAS").checked=false;
   document.getElementById("dealLocca").checked=false;
-  document.getElementById("dialogTitle").textContent=mode==="new"?"🔥 新しい獲得を記録":"📝 以前の獲得を分類";
+  document.getElementById("dialogTitle").textContent=mode==="new"?"🔥 新しい獲得を記録":"📝 前に獲得した案件の詳細を追加";
   document.getElementById("payRequired").textContent=mode==="new"?"（必須）":"（分かる場合のみ）";
   document.getElementById("winFooter").textContent=mode==="new"?"手法・商材・決済を選んだら保存！":"手法・商材を選択。決済が分かれば一緒に登録！";
-  document.getElementById("dialogNote").textContent=mode==="new"?"3つを選べば獲得＋1。OK状況の未選択は『確認中』になり、後から変更できます。":k+" の未分類 "+unknown(r)+"件に内訳を付けます。決済方法が不明なら未選択でもOK。獲得総数は増えません。";
+  document.getElementById("dialogNote").textContent=mode==="new"?"3つを選べば獲得＋1。OK状況の未選択は『確認中』になり、後からキャンセルにも変更できます。":k+" に獲得した "+unknown(r)+"件は手法・商材が未登録です。分かる範囲で詳細を追加できます（獲得数は増えません）。";
   document.getElementById("saveWin").textContent=mode==="new"?"🔥 獲得 ＋1件を保存":"この1件の内訳を登録";
   refreshChoices();
   document.getElementById("winDialog").showModal();
@@ -426,7 +430,7 @@ function buildReport(k=dateKey()){
   const payKnown=records(t).filter(x=>["credit","carrier","account"].includes(x.pay)).length;
   if(payKnown===t.sales&&t.sales)lines.push("・クレカ率："+pct(records(t).filter(x=>x.pay==="credit").length,t.sales));
   else if(t.sales)lines.push("※決済未登録の獲得："+(t.sales-payKnown)+"件（クレカ率は暫定）");
-  if(unknown(t))lines.push("※未分類の獲得："+unknown(t)+"件（旧記録など）");
+  if(unknown(t))lines.push("※手法・商材を入力していない過去の獲得："+unknown(t)+"件");
   return lines.join("\n");
 }
 async function copyText(id){
@@ -496,12 +500,13 @@ const TARGET_FIELDS=[
   ["plannedDays","出勤予定日数",21],["startDay","集計開始日（1～28）",25]
 ];
 const ADJ_FIELDS=[
-  ["extraET","アプリ未記録の獲得 ET",0],["extraDays","アプリ未記録の出勤日",0],
-  ["oldOK","旧記録・未入力分のOK数",0],["oldPAS","旧記録のPAS件数",0],
-  ["oldCredit","旧記録のクレカ件数",0],["oldCarrier","旧記録のキャリア件数",0],
-  ["oldAccount","旧記録の口座件数",0],["old5","旧記録の5年件数",0],
-  ["old3","旧記録の3年件数",0],["oldLocca","旧記録のLocca件数",0],
-  ["extraNatural","アプリ未記録の天然水件数",0],["extraFilter","アプリ未記録の浄水型件数",0]
+  ["extraET","カウンター開始前の獲得件数",0],["extraDays","開始前の出勤日数",0],
+  ["oldOK","過去分のOK件数（個別登録なし）",0],["cancelOldOK","過去分のキャンセル件数（個別登録なし）",0],
+  ["oldPAS","過去分のPAS件数",0],
+  ["oldCredit","過去分のクレカ件数",0],["oldCarrier","過去分のキャリア件数",0],
+  ["oldAccount","過去分の口座件数",0],["old5","過去分の5年件数",0],
+  ["old3","過去分の3年件数",0],["oldLocca","過去分のLocca件数",0],
+  ["extraNatural","開始前の天然水件数",0],["extraFilter","開始前の浄水型件数",0]
 ];
 function configFor(month=selectedMonth){
   if(!monthConfig[month]||typeof monthConfig[month]!=="object")monthConfig[month]={};
@@ -571,7 +576,7 @@ function getMonthly(month=selectedMonth){
     const daySales=Math.max(0,Number(r.sales)||0);
     const counts=["cut","product","sample"].map(m=>Math.max(0,Number(r[m])||0));
     sales+=daySales;mothers+=counts.reduce((a,b)=>a+b,0);
-    if(r.worked===true||daySales>0||counts.some(n=>n>0))days++;
+    if(daySales>0||counts.some(n=>n>0))days++;
     const recs=records(r);
     legacy+=Math.max(0,daySales-recs.length);
     for(const rec of recs){
@@ -596,7 +601,8 @@ function getMonthly(month=selectedMonth){
   }
   sales+=cfgValue("extraET",month);days+=cfgValue("extraDays",month);
   natural+=cfgValue("extraNatural",month);filter+=cfgValue("extraFilter",month);
-  ok+=cfgValue("oldOK",month);
+  const historicalOK=cfgValue("oldOK",month),historicalCanceled=cfgValue("cancelOldOK",month);
+  ok+=Math.max(0,historicalOK-historicalCanceled);
   pas+=cfgValue("oldPAS",month);credit+=cfgValue("oldCredit",month);carrier+=cfgValue("oldCarrier",month);account+=cfgValue("oldAccount",month);
   term5+=cfgValue("old5",month);term3+=cfgValue("old3",month);locca+=cfgValue("oldLocca",month);
   const targetET=cfgValue("targetET",month),targetOK=cfgValue("targetOK",month);
@@ -610,13 +616,13 @@ function renderMonth(){
   document.getElementById("monthLabel").textContent=month.replace("-","年")+"月度";
   document.getElementById("shortMonth").textContent="📈 "+month.replace("-","年")+"月度（"+period.start.slice(5).replace("-","/")+"〜"+period.end.slice(5).replace("-","/")+"）";
   document.getElementById("shortStats").textContent=t.sales+"ET / "+(t.okKnown?t.ok+"OK":"OK未入力");
-  document.getElementById("shortRates").textContent="達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"—")+" ・ AVE "+(t.days?(t.sales/t.days).toFixed(3):"—");
+  document.getElementById("shortRates").textContent="達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"—")+" ・ OK AVE "+(t.okKnown&&t.days?(t.ok/t.days).toFixed(3):"—");
   document.getElementById("monSales").innerHTML=number(t.sales)+" <i>件</i>";
   document.getElementById("monSalesTarget").textContent="目標 "+t.targetET+" ET";
   document.getElementById("monOK").textContent=t.okKnown?number(t.ok):"—";
   document.getElementById("monOKTarget").textContent="目標 "+t.targetOK+" OK";
   document.getElementById("monDays").textContent=t.days+" / "+t.plannedDays;
-  document.getElementById("monAvg").textContent=t.days?(t.sales/t.days).toFixed(3):"—";
+  document.getElementById("monAvg").textContent=t.okKnown&&t.days?(t.ok/t.days).toFixed(3):"—";
   document.getElementById("monOKRate").textContent="OK率 "+(t.okKnown?rate0(t.ok,t.sales):"—");
   document.getElementById("monthProgress").textContent=t.okKnown?rate1(t.ok,t.budgetOK):"—";
   document.getElementById("monthBar").style.width=t.okKnown&&t.budgetOK?Math.min(t.ok/t.budgetOK*100,100)+"%":"0%";
@@ -636,39 +642,54 @@ function renderMonth(){
   document.getElementById("monTerms").textContent=t.term5+" / "+t.term3;
   document.getElementById("monLocca").textContent=t.locca+"件（"+rate0(t.locca,t.sales)+"）";
   document.getElementById("monMonthInfo").textContent=period.start.slice(5)+"〜"+period.end.slice(5)+" / 母数 "+t.mothers;
-  renderPending();
+  renderStatusRecords();
   renderMissingPayments();
   const warnings=[];
-  if(!t.okKnown)warnings.push("旧記録のOKが未入力です。⚙️『旧記録・未入力分のOK数』を設定すると達成率が出ます");
-  if(t.legacy)warnings.push("手法・商材が未分類の獲得 "+t.legacy+"件");
+  if(!t.okKnown)warnings.push("以前の獲得でOK数が不明なものがあります。⚙️『過去分のOK件数』に分かる件数を入力してね");
+  if(t.legacy)warnings.push("以前の獲得で手法・商材が未登録："+t.legacy+"件");
   if(t.missingPayment)warnings.push("決済未登録 "+t.missingPayment+"件");
   if(t.missingTerm)warnings.push("年数未登録 "+t.missingTerm+"件");
+  if(cfgValue("cancelOldOK",month)>cfgValue("oldOK",month))warnings.push("過去分のキャンセル数が過去分のOK数より多いので確認してね");
   document.getElementById("monthCompleteness").textContent=warnings.length?"※ "+warnings.join(" / "):"※ 記録された詳細と手入力補正を集計しています。PAS・Locca等の未入力項目は0として計算します。";
 }
 function changeDealStatus(k,id,status){
+  if(!["ok","pending","ng"].includes(status))return;
   const r=data[k];if(!r||!Array.isArray(r.records))return;
   const rec=r.records.find(x=>x.id===id);if(!rec)return;
-  rec.status=status;save();render();showToast(status==="ok"?"✅ OKに変更":"✕ NGに変更");
+  const before=rec.status;
+  if(before===status)return;
+  rec.status=status;
+  save();render();
+  showToast(status==="ok"?"✅ OKに変更！AVEも更新":status==="pending"?"⏳ 確認中に変更":"✕ キャンセル／NGに変更！OK数を修正");
 }
-function renderPending(){
-  const root=document.getElementById("pendingRecords");root.replaceChildren();
-  let found=0;
-  for(const [k,r] of Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0]))){
+function renderStatusRecords(){
+  const root=document.getElementById("statusRecords"),details=document.getElementById("dealStatusDetails");
+  root.replaceChildren();
+  const recs=[];
+  for(const [k,r] of Object.entries(data).sort((a,b)=>b[0].localeCompare(a[0]))){
     if(!dateInPeriod(k,selectedMonth)||!r||!Array.isArray(r.records))continue;
-    for(const rec of r.records){
-      if(rec.status!=="pending")continue;found++;
-      const wrap=document.createElement("div");wrap.className="history";
-      const label=document.createElement("div");label.className="note";
-      label.textContent=k.slice(5).replace("-","/")+" "+(METHODS[rec.method]||"")+"・"+(KINDS[rec.kind]||"");
-      const row=document.createElement("div");row.className="actions";row.style.marginTop="6px";
-      const yes=document.createElement("button");yes.className="secondary";yes.textContent="✅ OKにする";
-      yes.addEventListener("click",()=>changeDealStatus(k,rec.id,"ok"));
-      const no=document.createElement("button");no.className="secondary";no.textContent="✕ NGにする";
-      no.addEventListener("click",()=>changeDealStatus(k,rec.id,"ng"));
-      row.append(yes,no);wrap.append(label,row);root.append(wrap);
+    for(let i=r.records.length-1;i>=0;i--){
+      const rec=r.records[i];
+      if(!rec||!rec.id||!METHODS[rec.method]||!KINDS[rec.kind])continue;
+      recs.push({k,rec});
     }
   }
-  document.getElementById("pendingSection").style.display=found?"block":"none";
+  document.getElementById("statusRecordCount").textContent=recs.length+"件";
+  details.style.display=recs.length?"block":"none";
+  for(const {k,rec} of recs){
+    const wrap=document.createElement("div");wrap.className="history";
+    const label=document.createElement("div");label.className="status-deal-title";
+    const statusText=rec.status==="ok"?"✅ OK":rec.status==="ng"?"✕ キャンセル/NG":rec.status==="pending"?"⏳ 確認中":"❔ OK状況未登録";
+    label.textContent=k.slice(5).replace("-","/")+" ・ "+METHODS[rec.method]+" ・ "+KINDS[rec.kind]+" ・ "+statusText;
+    const actions=document.createElement("div");actions.className="status-edit-actions";
+    for(const [key,title] of [["ok","✅ OK"],["pending","⏳ 確認中"],["ng","✕ 取消/NG"]]){
+      const b=document.createElement("button");b.textContent=title;
+      b.className="deal-state-option"+(rec.status===key?" active":"");
+      b.setAttribute("aria-pressed",rec.status===key?"true":"false");
+      b.addEventListener("click",()=>changeDealStatus(k,rec.id,key));actions.append(b);
+    }
+    wrap.append(label,actions);root.append(wrap);
+  }
 }
 function changeDealPayment(k,id,pay){
   if(!["credit","carrier","account"].includes(pay))return;
@@ -698,7 +719,6 @@ function renderMissingPayments(){
   document.getElementById("paymentMissingDetails").style.display=count?"block":"none";
   document.getElementById("missingPayCount").textContent=count+"件";
 }
-function toggleWorked(){const r=day();r.worked=!r.worked;save();render();showToast(r.worked?"📅 今日を出勤として登録":"📅 出勤チェックを解除");}
 function currentWeekKey(){
   const d=new Date();d.setHours(12,0,0,0);
   d.setDate(d.getDate()-((d.getDay()+5)%7)); // 火曜始まり
@@ -726,7 +746,7 @@ function buildWeeklyEmail(){
     "・獲得数 "+t.sales+"件",
     "・OK数 "+ok,
     "・OK率 "+(t.okKnown?rate0(t.ok,t.sales):"未入力"),
-    "・AVE "+(t.days?(t.sales/t.days).toFixed(3):"—"),
+    "・AVE "+(t.okKnown?(t.days?(t.ok/t.days).toFixed(3):"—"):"未入力"),
     "・デジ着 "+(hasCfg("digitalOK")?cfgValue("digitalOK")+"OK":"未入力"),
     "・達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"未入力"),
     "・進捗率 "+(t.okKnown&&t.days&&t.plannedDays&&t.budgetOK?rate0(t.ok,t.budgetOK*t.days/t.plannedDays):"未入力"),
@@ -750,10 +770,6 @@ function renderWeeklyReport(){
   document.getElementById("weeklyReport").value=buildWeeklyEmail();
   document.getElementById("weekRange").textContent="文章保存単位："+currentWeekKey()+"（火）からの1週間。月間数値は上で選択中の "+selectedMonth+" を反映";
 }
-function updateWorkedButton(){
-  const r=day();const b=document.getElementById("workedButton");
-  b.textContent=r.worked?"✅ 出勤チェック済み":"今日を出勤として記録";
-}
 createConfigFields();fillConfigFields();fillNotes();
 
 function render(){
@@ -776,7 +792,7 @@ function render(){
   for(const r of records(t)){if(Object.hasOwn(payCounts,r.pay))payCounts[r.pay]++;}
   document.getElementById("todayPayments").textContent="💳 クレカ "+payCounts.credit+"件（"+pct(payCounts.credit,t.sales)+"） / 📱 キャリア "+payCounts.carrier+"件 / 🏦 口座 "+payCounts.account+"件";
   document.getElementById("otherWins").textContent=methodWins(t,"other")?"戻り・その他での獲得："+methodWins(t,"other")+"件":"";
-  document.getElementById("today-unknown").textContent=missing?"※既存データに内訳未登録の獲得が"+missing+"件あるよ。":"";
+  document.getElementById("today-unknown").textContent=missing?"※以前の獲得で、手法・商材を入力していないものが"+missing+"件あります。":"";
   document.getElementById("classifyToday").style.display=missing?"block":"none";
   let weekSales=0,weekTotal=0,weekUnknown=0,weeklyMethods={cut:0,product:0,sample:0},weeklyCounts={cut:0,product:0,sample:0},weeklyKinds={natural:0,filter:0};
   const history=document.getElementById("history");history.replaceChildren();
@@ -795,7 +811,7 @@ function render(){
       detail.textContent="天然水 "+kindWins(r,"natural")+"・浄水型 "+kindWins(r,"filter")+" ／ カットイン "+methodWins(r,"cut")+"・物販 "+methodWins(r,"product")+"・試飲 "+methodWins(r,"sample")+(methodWins(r,"other")?"・戻り等 "+methodWins(r,"other"):"");
       block.append(detail);
       if(unknown(r)>0){
-        const b=document.createElement("button");b.textContent="未分類 "+unknown(r)+"件 → 内訳を登録";
+        const b=document.createElement("button");b.textContent="過去の獲得 "+unknown(r)+"件 → 手法・商材を入力";
         b.addEventListener("click",()=>openWin("classify",k));block.append(b);
       }
     }
@@ -808,9 +824,9 @@ function render(){
   }
   document.getElementById("week-natural").textContent=weeklyKinds.natural;
   document.getElementById("week-filter").textContent=weeklyKinds.filter;
-  document.getElementById("week-note").textContent=weekUnknown?"※直近7日間には内訳未分類の獲得が"+weekUnknown+"件あるため、手法・商材の合計は総獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数";
+  document.getElementById("week-note").textContent=weekUnknown?"※過去の獲得で手法・商材を入力していない案件が"+weekUnknown+"件あるため、内訳の合計は獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数";
   document.getElementById("report").value=buildReport();
-  fillConfigFields();renderMonth();renderWeeklyReport();updateWorkedButton();
+  fillConfigFields();renderMonth();renderWeeklyReport();
 }
 render();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
