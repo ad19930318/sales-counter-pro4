@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f3f6fc">
-<title>営業カウンター PRO 4.2 - OK管理</title>
+<title>営業カウンター PRO 4.4 - 商材別キャンセル管理</title>
 <style>
 :root{--navy:#13233f;--muted:#66758d;--blue:#2367e8;--green:#139e70;--bg:#f3f6fc;--line:#e6ebf3;--shadow:0 5px 22px rgba(22,47,85,.055)}
 *{box-sizing:border-box}
@@ -124,12 +124,24 @@ textarea#weeklyReport{min-height:230px}
 .month-warning{background:#fff9e9;border-radius:10px;color:#91600b;padding:10px;margin:8px 0;font-size:12px;line-height:1.6}
 @media(min-width:470px){.month-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.month-kpi strong{font-size:24px}}
 
+
+.ok-counter-box{display:flex;align-items:center;justify-content:center;gap:14px;background:#f0f6ff;border-radius:17px;padding:15px 10px}
+.ok-round-btn{width:61px;height:61px;border:0;border-radius:16px;background:#2270ea;color:white;font-size:34px;font-weight:800;flex-shrink:0;box-shadow:0 4px 12px #2270ea23}
+.ok-round-btn.minus{background:#e34f64;box-shadow:0 4px 12px #e34f6423}
+.ok-current{flex:1;min-width:0;text-align:center}.ok-current strong{font-size:40px;font-weight:850;display:block;color:#172e55}
+.ok-cancel-options{padding:12px;margin-top:10px;border:1px solid #f3cfdb;border-radius:13px;background:#fff6f8}
+.ok-cancel-options[hidden]{display:none}
+.ok-cancel-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.ok-cancel-buttons button{border:1px solid #f1a9bc;border-radius:11px;padding:14px 3px;background:#fff;font-size:14px;font-weight:800;color:#af2a52}
+.ok-cancel-summary{color:#3c5575;font-size:13px;margin-top:12px;font-weight:650;line-height:1.6}
+.ok-set-details{margin-top:8px;border-top:1px solid #e3eaf5;padding-top:12px}
+.ok-set-details summary{cursor:pointer;font-size:13px;font-weight:750;color:#2d62c8}
 </style>
 </head>
 <body>
 <main>
 <header>
-<h1>🔥 営業カウンター PRO 4.2</h1>
+<h1>🔥 営業カウンター PRO 4.4</h1>
 <div class="subtitle" id="date"></div>
 </header>
 
@@ -197,11 +209,39 @@ textarea#weeklyReport{min-height:230px}
   </tbody></table>
   <div class="guide" id="monthCompleteness"></div>
 </div>
-<details class="item" id="dealStatusDetails" style="display:none;margin-top:10px">
-  <summary>✅ OK・キャンセルを修正 <span id="statusRecordCount" class="pill">0件</span></summary>
-  <p class="guide">後からキャンセルが出たら、該当する案件の「✕ キャンセル/NG」を押してね。獲得件数はそのままでOK数だけ減り、OK AVEも自動更新されます。間違えて変更してもOKに戻せます。</p>
-  <div id="statusRecords"></div>
-</details>
+<div class="item" id="okNumberEditor" style="margin-top:10px">
+  <div class="label">✅ 月間OK数を修正（案件の特定は不要）</div>
+  <p class="guide" style="margin:8px 0 12px">OKが増えたら「＋1」、キャンセルなら「−1」を押して天然水・浄水型を選ぶだけ。獲得数は変えず、OK数・AVE・火曜日のメールに自動反映します。</p>
+  <div class="ok-counter-box" aria-label="月間OK数カウンター">
+    <button class="ok-round-btn" onclick="changeManualOK(1)" aria-label="OKを1件増やす">＋</button>
+    <div class="ok-current"><div class="small">現在の月間OK数</div><strong id="manualOKDisplay">—</strong><div class="unit">OK</div></div>
+    <button class="ok-round-btn minus" onclick="toggleCancelChooser()" aria-label="キャンセルを1件登録する">−</button>
+  </div>
+  <div class="ok-cancel-options" id="okCancelChooser" hidden>
+    <div class="label" style="font-size:14px">どちらがキャンセルになった？</div>
+    <div class="ok-cancel-buttons">
+      <button onclick="registerKindCancel('natural')">🏞️ 天然水 −1</button>
+      <button onclick="registerKindCancel('filter')">🚰 浄水型 −1</button>
+    </div>
+    <button class="secondary" onclick="toggleCancelChooser(false)" style="width:100%;margin-top:8px">やめる</button>
+  </div>
+  <div class="ok-cancel-summary" id="okCancelSummary">この画面で登録したキャンセル：天然水 0件 ／ 浄水型 0件</div>
+  <button class="secondary" onclick="undoManualOK()" id="undoManualOKButton" style="width:100%;margin:10px 0 12px" disabled>↩ 直前のOK操作を取り消す</button>
+  <details class="ok-set-details">
+    <summary>数字を直接入力する（初期設定・まとめて修正）</summary>
+    <div class="row" style="align-items:end;gap:10px;margin-top:10px">
+    <label class="field" style="flex:1;min-width:0">修正後の月間OK数
+      <input id="manualOKInput" type="number" min="0" step="1" inputmode="numeric" placeholder="月間OK数を入力">
+    </label>
+    <button class="primary" style="width:auto;white-space:nowrap;padding:11px 16px" onclick="saveManualOK()">この数字で更新</button>
+  </div>
+  </details>
+  <div class="row" style="margin-top:9px;align-items:center;gap:9px">
+    <span class="guide" id="manualOKNote" style="flex:1">月間OK数はまだ修正していません</span>
+    <button id="clearManualOK" class="secondary" style="display:none;width:auto;padding:8px 10px;font-size:12px" onclick="clearManualOK()">修正を解除</button>
+  </div>
+  <p class="guide" style="margin-top:8px">※天然水・浄水型のキャンセル件数は、この画面で今後登録した分だけを表示します。過去のキャンセル内訳が不明なものは勝手に分類しません。</p>
+</div>
 <details class="item" id="paymentMissingDetails" style="display:none;margin-top:10px">
   <summary>💳 決済未登録の案件 <span id="missingPayCount" class="pill orange">0件</span></summary>
   <p class="guide">以前の記録で決済方法が未入力の案件です。分かる分だけ後から登録できます（獲得数は増えません）。</p>
@@ -209,12 +249,13 @@ textarea#weeklyReport{min-height:230px}
 </details>
 <details class="item" style="margin-top:10px" id="configBox">
   <summary>⚙️ 月間目標・以前の記録を入力する</summary>
-  <p class="guide">ここは最初の設定や、過去分の数字を直したいときに使います。月度は初期設定で前月25日〜当月24日です。</p>
+  <p class="guide">ここは最初の設定や、カウンターに未記録の数字を直したいときに使います。月間集計は毎月1日〜末日です。以前の25日締め設定が残っていても、今後は1日始まりで計算します。</p>
   <div class="settings-group" style="border-top:0;padding-top:0"><h3>目標・予算</h3><div class="input-grid" id="targetsGrid"></div></div>
-  <div class="settings-group"><h3>📝 カウンターで記録できなかった過去分</h3>
-  <p class="guide">例：以前のカウンターに獲得件数だけ残っていて、OKかどうか記録していない場合は「過去分のOK件数」に入力します。<strong>獲得済みの件数はもう一度入力しないでね。</strong> 個別案件を「OK・キャンセルを修正」で変更した場合は、その案件を過去分のOK件数に重複して含めないようにしてください。</p>
+  <div class="settings-group"><h3>📝 この月のカウンター開始前・未入力分</h3>
+  <p class="guide" id="missingPeriodHint"></p>
+  <p class="guide">ここは選択中の月の1日から、カウンターで記録し始める前までなど、日別データに入っていない件数だけを補う欄です。すでにカウンターで記録した数字は重複して入力しないでね。<strong>通常のキャンセル修正は上の「月間OK数を数字だけ修正」を使ってね。</strong> 過去に入力したOK数・キャンセル数はそのまま引き継ぎます。</p>
   <div class="input-grid" id="adjustGrid"></div>
-  <p class="guide">「過去分のキャンセル」は個別案件を選べないときだけ入力。個別案件をキャンセルに変更した場合は入力不要です。決済・5年等も記録していない分だけ入力します。</p></div>
+  <p class="guide">決済・5年・Loccaなどは、この月でまだ記録していない分だけ入力してください。OKのキャンセル調整は上の数字入力だけでOKです。</p></div>
   <div class="settings-group"><h3>デジ着</h3><div class="input-grid" id="digitalGrid"></div></div>
 </details>
 
@@ -262,7 +303,7 @@ textarea#weeklyReport{min-height:230px}
   <button class="secondary" onclick="document.getElementById('restoreInput').click()">📂 バックアップ復元</button>
   <input id="restoreInput" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
 </div>
-<footer>SALES COUNTER PRO 4.2 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
+<footer>SALES COUNTER PRO 4.4 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
 </main>
 
 <dialog id="winDialog">
@@ -490,23 +531,22 @@ try{
   weeklyNotes=v.weeklyNotes&&typeof v.weeklyNotes==="object"?v.weeklyNotes:{};
 }catch(e){}
 function businessMonthOf(date=dateKey()){
-  const [y,m,d]=date.split("-").map(Number);
-  return dateKey(new Date(y,m-1+(d>=25?1:0),1,12)).slice(0,7);
+  return date.slice(0,7);
 }
 let selectedMonth=businessMonthOf();
 const TARGET_FIELDS=[
   ["targetET","今月目標 ET",70],["targetOK","今月目標 OK",60],
   ["budgetET","今月予算 ET",50],["budgetOK","今月予算 OK",40],
-  ["plannedDays","出勤予定日数",21],["startDay","集計開始日（1～28）",25]
+  ["plannedDays","出勤予定日数",21]
 ];
 const ADJ_FIELDS=[
-  ["extraET","カウンター開始前の獲得件数",0],["extraDays","開始前の出勤日数",0],
-  ["oldOK","過去分のOK件数（個別登録なし）",0],["cancelOldOK","過去分のキャンセル件数（個別登録なし）",0],
-  ["oldPAS","過去分のPAS件数",0],
-  ["oldCredit","過去分のクレカ件数",0],["oldCarrier","過去分のキャリア件数",0],
-  ["oldAccount","過去分の口座件数",0],["old5","過去分の5年件数",0],
-  ["old3","過去分の3年件数",0],["oldLocca","過去分のLocca件数",0],
-  ["extraNatural","開始前の天然水件数",0],["extraFilter","開始前の浄水型件数",0]
+  ["extraET","カウンター未記録分の獲得件数",0],["extraDays","カウンター未記録分の出勤日数",0],
+  ["oldOK","未記録分のOK件数（個別登録なし）",0],["cancelOldOK","未記録分のキャンセル件数（個別登録なし）",0],
+  ["oldPAS","未記録分のPAS件数",0],
+  ["oldCredit","未記録分のクレカ件数",0],["oldCarrier","未記録分のキャリア件数",0],
+  ["oldAccount","未記録分の口座件数",0],["old5","未記録分の5年件数",0],
+  ["old3","未記録分の3年件数",0],["oldLocca","未記録分のLocca件数",0],
+  ["extraNatural","未記録分の天然水件数",0],["extraFilter","未記録分の浄水型件数",0]
 ];
 function configFor(month=selectedMonth){
   if(!monthConfig[month]||typeof monthConfig[month]!=="object")monthConfig[month]={};
@@ -518,6 +558,12 @@ function cfgValue(k,month=selectedMonth){
   return x===""||x===null||x===undefined?def:Math.max(0,Number(x)||0);
 }
 function hasCfg(k,month=selectedMonth){return Object.hasOwn(configFor(month),k)&&configFor(month)[k]!==""&&configFor(month)[k]!==null;}
+// OK数修正は±の差分で保持。後から新しいOKが増えた分は自動で上乗せする。
+function monthOKDelta(month=selectedMonth){
+  if(!hasCfg("okManualAdjustment",month))return 0;
+  const n=Number(configFor(month).okManualAdjustment);
+  return Number.isSafeInteger(n)?n:0;
+}
 function saveConfigs(){
   try{localStorage.setItem(CONFIG_STORE,JSON.stringify({monthConfig,weeklyNotes}));}
   catch(e){alert("設定の保存に失敗しました。空き容量を確認してね。");}
@@ -534,11 +580,10 @@ function createConfigFields(){
       const field=document.createElement("label");field.className="field";field.textContent=label;
       const input=document.createElement("input");input.type="number";input.min="0";input.step="1";
       input.dataset.config=key;
-      if(key==="startDay"){input.min="1";input.max="28";}
       input.addEventListener("change",()=>{
         const val=input.value.trim();
         if(val==="")delete configFor()[key];
-        else configFor()[key]=key==="startDay"?Math.max(1,Math.min(28,Math.floor(Number(val)||25))):Math.max(0,Math.floor(Number(val)||0));
+        else configFor()[key]=Math.max(0,Math.floor(Number(val)||0));
         saveConfigs();renderMonth();renderWeeklyReport();
       });
       field.append(input);root.append(field);
@@ -558,9 +603,8 @@ function rate1(n,d){return d?Number((n/d*100).toFixed(1))+"%":"—";}
 function valueText(n,known=true){return known?number(n):"—";}
 function getPeriodBounds(month){
   const [yy,mm]=month.split("-").map(Number);
-  const startDay=Math.min(28,Math.max(1,cfgValue("startDay",month)));
-  const first=startDay===1?new Date(yy,mm-1,1,12):new Date(yy,mm-2,startDay,12);
-  const last=startDay===1?new Date(yy,mm,0,12):new Date(yy,mm-1,startDay-1,12);
+  const first=new Date(yy,mm-1,1,12);
+  const last=new Date(yy,mm,0,12);
   return {start:dateKey(first),end:dateKey(last)};
 }
 function dateInPeriod(k,month){
@@ -603,18 +647,36 @@ function getMonthly(month=selectedMonth){
   natural+=cfgValue("extraNatural",month);filter+=cfgValue("extraFilter",month);
   const historicalOK=cfgValue("oldOK",month),historicalCanceled=cfgValue("cancelOldOK",month);
   ok+=Math.max(0,historicalOK-historicalCanceled);
+  const okBase=ok;
+  ok=Math.max(0,okBase+monthOKDelta(month));
   pas+=cfgValue("oldPAS",month);credit+=cfgValue("oldCredit",month);carrier+=cfgValue("oldCarrier",month);account+=cfgValue("oldAccount",month);
   term5+=cfgValue("old5",month);term3+=cfgValue("old3",month);locca+=cfgValue("oldLocca",month);
   const targetET=cfgValue("targetET",month),targetOK=cfgValue("targetOK",month);
   const budgetET=cfgValue("budgetET",month),budgetOK=cfgValue("budgetOK",month),plannedDays=cfgValue("plannedDays",month);
-  const okKnown=hasCfg("oldOK",month)||!legacy&&!unknownStatus&&!cfgValue("extraET",month);
-  return {sales,days,mothers,natural,filter,cut,product,sample,other,pas,credit,carrier,account,term5,term3,locca,ok,okKnown,legacy,unknownStatus,missingPayment,missingTerm,targetET,targetOK,budgetET,budgetOK,plannedDays};
+  const okKnown=hasCfg("okManualAdjustment",month)||hasCfg("oldOK",month)||!legacy&&!unknownStatus&&!cfgValue("extraET",month);
+  return {sales,days,mothers,natural,filter,cut,product,sample,other,pas,credit,carrier,account,term5,term3,locca,ok,okBase,okKnown,legacy,unknownStatus,missingPayment,missingTerm,targetET,targetOK,budgetET,budgetOK,plannedDays};
+}
+function renderMissingPeriodHint(month){
+  const bounds=getPeriodBounds(month);
+  const firstRecorded=Object.keys(data).sort().find(k=>{
+    if(k<bounds.start||k>bounds.end)return false;
+    const r=data[k];
+    return r&&((Number(r.sales)||0)>0||["cut","product","sample"].some(x=>(Number(r[x])||0)>0));
+  });
+  const display=month.replace("-","年")+"月";
+  const hint=firstRecorded
+    ? Number(firstRecorded.slice(8))===1
+      ? display+"1日から記録があります。数字が足りない場合だけ未入力分を補ってね。"
+      : display+"1日〜"+(Number(firstRecorded.slice(8))-1)+"日が、記録開始前の目安（最初にカウンターへ入力した日は"+Number(firstRecorded.slice(8))+"日）。すでに入力済みの数字を重複させないよう確認してね。"
+    :display+"1日から末日までのうち、カウンターに記録していない分だけを入力してね。";
+  document.getElementById("missingPeriodHint").textContent=hint;
 }
 function renderMonth(){
   const t=getMonthly(),month=selectedMonth;
   const period=getPeriodBounds(month);
-  document.getElementById("monthLabel").textContent=month.replace("-","年")+"月度";
-  document.getElementById("shortMonth").textContent="📈 "+month.replace("-","年")+"月度（"+period.start.slice(5).replace("-","/")+"〜"+period.end.slice(5).replace("-","/")+"）";
+  renderMissingPeriodHint(month);
+  document.getElementById("monthLabel").textContent=month.replace("-","年")+"月（1日〜末日）";
+  document.getElementById("shortMonth").textContent="📈 "+month.replace("-","年")+"月（"+period.start.slice(5).replace("-","/")+"〜"+period.end.slice(5).replace("-","/")+"）";
   document.getElementById("shortStats").textContent=t.sales+"ET / "+(t.okKnown?t.ok+"OK":"OK未入力");
   document.getElementById("shortRates").textContent="達成率 "+(t.okKnown?rate1(t.ok,t.budgetOK):"—")+" ・ OK AVE "+(t.okKnown&&t.days?(t.ok/t.days).toFixed(3):"—");
   document.getElementById("monSales").innerHTML=number(t.sales)+" <i>件</i>";
@@ -642,54 +704,104 @@ function renderMonth(){
   document.getElementById("monTerms").textContent=t.term5+" / "+t.term3;
   document.getElementById("monLocca").textContent=t.locca+"件（"+rate0(t.locca,t.sales)+"）";
   document.getElementById("monMonthInfo").textContent=period.start.slice(5)+"〜"+period.end.slice(5)+" / 母数 "+t.mothers;
-  renderStatusRecords();
+  renderManualOK();
   renderMissingPayments();
   const warnings=[];
-  if(!t.okKnown)warnings.push("以前の獲得でOK数が不明なものがあります。⚙️『過去分のOK件数』に分かる件数を入力してね");
+  if(!t.okKnown)warnings.push("以前の獲得でOK数が未登録です。上の『月間OK数を数字だけ修正』に現在の合計を入力してね");
   if(t.legacy)warnings.push("以前の獲得で手法・商材が未登録："+t.legacy+"件");
   if(t.missingPayment)warnings.push("決済未登録 "+t.missingPayment+"件");
   if(t.missingTerm)warnings.push("年数未登録 "+t.missingTerm+"件");
-  if(cfgValue("cancelOldOK",month)>cfgValue("oldOK",month))warnings.push("過去分のキャンセル数が過去分のOK数より多いので確認してね");
+  if(cfgValue("cancelOldOK",month)>cfgValue("oldOK",month))warnings.push("未記録分のキャンセル数が未記録分のOK数より多いので確認してね");
   document.getElementById("monthCompleteness").textContent=warnings.length?"※ "+warnings.join(" / "):"※ 記録された詳細と手入力補正を集計しています。PAS・Locca等の未入力項目は0として計算します。";
 }
-function changeDealStatus(k,id,status){
-  if(!["ok","pending","ng"].includes(status))return;
-  const r=data[k];if(!r||!Array.isArray(r.records))return;
-  const rec=r.records.find(x=>x.id===id);if(!rec)return;
-  const before=rec.status;
-  if(before===status)return;
-  rec.status=status;
-  save();render();
-  showToast(status==="ok"?"✅ OKに変更！AVEも更新":status==="pending"?"⏳ 確認中に変更":"✕ キャンセル／NGに変更！OK数を修正");
+// 個別契約と結び付けず、月単位のOK補正とキャンセル商材を管理する。
+// 従来の「okManualAdjustment」への変更履歴を残すため、キャンセル件数は別フィールドで保存する。
+function manualOKHistory(month=selectedMonth){
+  const a=configFor(month).manualOKActions;
+  return Array.isArray(a)?a:[];
 }
-function renderStatusRecords(){
-  const root=document.getElementById("statusRecords"),details=document.getElementById("dealStatusDetails");
-  root.replaceChildren();
-  const recs=[];
-  for(const [k,r] of Object.entries(data).sort((a,b)=>b[0].localeCompare(a[0]))){
-    if(!dateInPeriod(k,selectedMonth)||!r||!Array.isArray(r.records))continue;
-    for(let i=r.records.length-1;i>=0;i--){
-      const rec=r.records[i];
-      if(!rec||!rec.id||!METHODS[rec.method]||!KINDS[rec.kind])continue;
-      recs.push({k,rec});
-    }
+function getCancelKindCounts(month=selectedMonth){
+  const hist=manualOKHistory(month);
+  return hist.reduce((counts,item)=>{
+    if(item?.type==="cancel"&&["natural","filter"].includes(item.kind))counts[item.kind]++;
+    return counts;
+  },{natural:0,filter:0});
+}
+function logManualOK(type,kind=""){
+  const cfg=configFor();const h=manualOKHistory().slice(-99);
+  h.push({type,kind,at:new Date().toISOString()});cfg.manualOKActions=h;
+}
+function changeManualOK(amount){
+  const t=getMonthly();
+  if(!t.okKnown){alert("最初に『数字を直接入力する』から現在の月間OK数を登録してね！");return;}
+  if(t.ok+amount<0){alert("OK数は0未満にはできません");return;}
+  if(amount===-1){toggleCancelChooser(true);return;}
+  configFor().okManualAdjustment=monthOKDelta()+amount;
+  logManualOK("plus");
+  saveConfigs();render();showToast("✅ 月間OK数 ＋1！");
+}
+function toggleCancelChooser(force){
+  const el=document.getElementById("okCancelChooser");
+  if(force===false)el.hidden=true;
+  else if(force===true)el.hidden=false;
+  else el.hidden=!el.hidden;
+}
+function registerKindCancel(kind){
+  if(!["natural","filter"].includes(kind))return;
+  const t=getMonthly();
+  if(!t.okKnown){alert("先に現在の月間OK数を直接入力してね！");return;}
+  if(t.ok<=0){alert("OK数はこれ以上減らせません");return;}
+  configFor().okManualAdjustment=monthOKDelta()-1;
+  logManualOK("cancel",kind);
+  saveConfigs();render();toggleCancelChooser(false);
+  showToast((kind==="natural"?"🏞️ 天然水":"🚰 浄水型")+"キャンセル −1！");
+}
+function undoManualOK(){
+  const h=manualOKHistory();if(!h.length)return;
+  const action=h[h.length-1];
+  const correction=action.type==="cancel"?1:action.type==="plus"?-1:0;
+  if(!correction)return;
+  if(getMonthly().ok+correction<0){alert("OK数を0未満には戻せません");return;}
+  configFor().okManualAdjustment=monthOKDelta()+correction;
+  configFor().manualOKActions=h.slice(0,-1);
+  saveConfigs();render();showToast("直前のOK操作を取り消したよ");
+}
+function renderManualOK(){
+  const t=getMonthly(),input=document.getElementById("manualOKInput");
+  document.getElementById("manualOKDisplay").textContent=t.okKnown?number(t.ok):"—";
+  const kinds=getCancelKindCounts();
+  document.getElementById("okCancelSummary").textContent="この画面で登録したキャンセル：天然水 "+kinds.natural+"件 ／ 浄水型 "+kinds.filter+"件";
+  const actions=manualOKHistory();
+  document.getElementById("undoManualOKButton").disabled=!actions.length||actions.at(-1).type==="set";
+  if(document.activeElement!==input)input.value=t.okKnown?String(t.ok):"";
+  const corrected=hasCfg("okManualAdjustment");
+  document.getElementById("clearManualOK").style.display=corrected?"inline-block":"none";
+  const delta=monthOKDelta();
+  document.getElementById("manualOKNote").textContent=corrected
+    ?"✅ 数字を調整中（自動集計から "+(delta>=0?"+":"")+delta+"OK）。次のOK登録も自動で反映"
+    :t.okKnown?"現在 "+t.ok+"OK。変更したいときだけ数字を直して保存してね。":"以前のOK数が未入力です。現在の合計OK数を入力すると集計できます。";
+}
+function saveManualOK(){
+  const input=document.getElementById("manualOKInput");
+  const str=input.value.trim();
+  if(!/^\d+$/.test(str)||!Number.isSafeInteger(Number(str))){
+    alert("修正後の月間OK数を0以上の整数で入力してね！");input.focus();return;
   }
-  document.getElementById("statusRecordCount").textContent=recs.length+"件";
-  details.style.display=recs.length?"block":"none";
-  for(const {k,rec} of recs){
-    const wrap=document.createElement("div");wrap.className="history";
-    const label=document.createElement("div");label.className="status-deal-title";
-    const statusText=rec.status==="ok"?"✅ OK":rec.status==="ng"?"✕ キャンセル/NG":rec.status==="pending"?"⏳ 確認中":"❔ OK状況未登録";
-    label.textContent=k.slice(5).replace("-","/")+" ・ "+METHODS[rec.method]+" ・ "+KINDS[rec.kind]+" ・ "+statusText;
-    const actions=document.createElement("div");actions.className="status-edit-actions";
-    for(const [key,title] of [["ok","✅ OK"],["pending","⏳ 確認中"],["ng","✕ 取消/NG"]]){
-      const b=document.createElement("button");b.textContent=title;
-      b.className="deal-state-option"+(rec.status===key?" active":"");
-      b.setAttribute("aria-pressed",rec.status===key?"true":"false");
-      b.addEventListener("click",()=>changeDealStatus(k,rec.id,key));actions.append(b);
-    }
-    wrap.append(label,actions);root.append(wrap);
-  }
+  const desired=Number(str);
+  const t=getMonthly();
+  const delta=desired-t.okBase;
+  // 契約記録・過去分の数は書き換えない。新たなOK数との差だけ保存。
+  configFor().okManualAdjustment=delta;
+  configFor().manualOKActions=[...manualOKHistory().slice(-98),{type:"set",at:new Date().toISOString()}];
+  input.blur();saveConfigs();render();
+  showToast("✅ 月間OK数を"+desired+"OKに更新！AVE・メールにも反映");
+}
+function clearManualOK(){
+  if(!hasCfg("okManualAdjustment"))return;
+  if(!confirm("月間OK数の数字修正を解除して、契約記録からの自動集計に戻しますか？"))return;
+  delete configFor().okManualAdjustment;
+  delete configFor().manualOKActions;
+  saveConfigs();render();showToast("月間OK数を自動集計に戻したよ！");
 }
 function changeDealPayment(k,id,pay){
   if(!["credit","carrier","account"].includes(pay))return;
@@ -745,6 +857,8 @@ function buildWeeklyEmail(){
     "・出勤数 "+t.days+"日",
     "・獲得数 "+t.sales+"件",
     "・OK数 "+ok,
+    "・キャンセル（天然水） "+getCancelKindCounts().natural+"件（アプリ登録分）",
+    "・キャンセル（浄水型） "+getCancelKindCounts().filter+"件（アプリ登録分）",
     "・OK率 "+(t.okKnown?rate0(t.ok,t.sales):"未入力"),
     "・AVE "+(t.okKnown?(t.days?(t.ok/t.days).toFixed(3):"—"):"未入力"),
     "・デジ着 "+(hasCfg("digitalOK")?cfgValue("digitalOK")+"OK":"未入力"),
