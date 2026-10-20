@@ -1,0 +1,274 @@
+{
+  "version": 4,
+  "salesData": {
+    "2026-10-09": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-10": {
+      "cut": 8,
+      "product": 2,
+      "sample": 3,
+      "sales": 4,
+      "records": [
+        {
+          "id": "1791647800138-gp92zlut50g",
+          "method": "cut",
+          "kind": "filter",
+          "time": "2026-10-10T15:56:40.138Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791647805896-yemmw79ib9",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-10T15:56:45.896Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791647810008-vozuny0669t",
+          "method": "product",
+          "kind": "natural",
+          "time": "2026-10-10T15:56:50.008Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791647812987-mp3tvrherd",
+          "method": "product",
+          "kind": "natural",
+          "time": "2026-10-10T15:56:52.987Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-11": {
+      "cut": 11,
+      "product": 1,
+      "sample": 3,
+      "sales": 3,
+      "records": [
+        {
+          "id": "1791702989576-antw46agn5b",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-11T07:16:29.577Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791705794663-mrytleda1gs",
+          "method": "sample",
+          "kind": "filter",
+          "time": "2026-10-11T08:03:14.663Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791715336184-qs56yjhr47q",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-11T10:42:16.184Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-08": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-07": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-06": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-05": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-12": {
+      "cut": 10,
+      "product": 3,
+      "sample": 5,
+      "sales": 4,
+      "records": [
+        {
+          "id": "1791777590035-bzzwt6zeg8h",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-12T03:59:50.035Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791789668684-m731vbv2tfj",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-12T07:21:08.684Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791789682694-1xu9pgvg6as",
+          "method": "other",
+          "kind": "filter",
+          "time": "2026-10-12T07:21:22.694Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1791801602579-vzv5us3gclf",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-12T10:40:02.579Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-14": {
+      "cut": 3,
+      "product": 3,
+      "sample": 2,
+      "sales": 1,
+      "records": [
+        {
+          "id": "1791948577790-af89aeq75r",
+          "method": "sample",
+          "kind": "natural",
+          "time": "2026-10-14T03:29:37.790Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-13": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-15": {
+      "cut": 1,
+      "product": 2,
+      "sample": 2,
+      "sales": 3,
+      "records": [
+        {
+          "id": "1792032879778-gd57ey6d73h",
+          "method": "product",
+          "kind": "filter",
+          "time": "2026-10-15T02:54:39.778Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1792040814332-pyftuijj0b",
+          "method": "sample",
+          "kind": "filter",
+          "time": "2026-10-15T05:06:54.332Z",
+          "pay": "account"
+        },
+        {
+          "id": "1792049261951-bzyeqve6j0s",
+          "method": "product",
+          "kind": "filter",
+          "time": "2026-10-15T07:27:41.951Z",
+          "pay": "account"
+        }
+      ]
+    },
+    "2026-10-18": {
+      "cut": 3,
+      "product": 3,
+      "sample": 5,
+      "sales": 2,
+      "records": [
+        {
+          "id": "1792299575591-bk3fqumb97l",
+          "method": "product",
+          "kind": "natural",
+          "time": "2026-10-18T04:59:35.591Z",
+          "pay": "credit"
+        },
+        {
+          "id": "1792308165001-ionht25is78",
+          "method": "cut",
+          "kind": "natural",
+          "time": "2026-10-18T07:22:45.001Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-17": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-16": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": []
+    },
+    "2026-10-19": {
+      "cut": 13,
+      "product": 0,
+      "sample": 1,
+      "sales": 1,
+      "records": [
+        {
+          "id": "1792394434434-517l6t7at5w",
+          "method": "cut",
+          "kind": "filter",
+          "time": "2026-10-19T07:20:34.434Z",
+          "pay": "credit"
+        }
+      ]
+    },
+    "2026-10-20": {
+      "cut": 0,
+      "product": 0,
+      "sample": 0,
+      "sales": 0,
+      "records": [],
+      "worked": false
+    }
+  },
+  "monthConfig": {
+    "2026-10": {
+      "extraDays": 5,
+      "extraET": 10,
+      "oldCarrier": 3,
+      "oldCredit": 7,
+      "extraNatural": 6,
+      "extraFilter": 4,
+      "startDay": 1,
+      "oldOK": 10
+    },
+    "2026-11": {}
+  },
+  "weeklyNotes": {
+    "2026-10-20": {
+      "result": "",
+      "good": "",
+      "bad": "",
+      "improve": "",
+      "place": "",
+      "goal": ""
+    }
+  }
+}
