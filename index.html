@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f3f6fc">
-<title>営業カウンター PRO 4.4 - 商材別キャンセル管理</title>
+<title>営業カウンター PRO 4.6 - OK商材別調整</title>
 <style>
 :root{--navy:#13233f;--muted:#66758d;--blue:#2367e8;--green:#139e70;--bg:#f3f6fc;--line:#e6ebf3;--shadow:0 5px 22px rgba(22,47,85,.055)}
 *{box-sizing:border-box}
@@ -131,6 +131,9 @@ textarea#weeklyReport{min-height:230px}
 .ok-current{flex:1;min-width:0;text-align:center}.ok-current strong{font-size:40px;font-weight:850;display:block;color:#172e55}
 .ok-cancel-options{padding:12px;margin-top:10px;border:1px solid #f3cfdb;border-radius:13px;background:#fff6f8}
 .ok-cancel-options[hidden]{display:none}
+.ok-add-options{padding:12px;margin-top:10px;border:1px solid #bcd5fb;border-radius:13px;background:#f3f8ff}
+.ok-add-options[hidden]{display:none}
+.ok-add-options .ok-cancel-buttons button{border-color:#a9c6f4;color:#215ab4}
 .ok-cancel-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .ok-cancel-buttons button{border:1px solid #f1a9bc;border-radius:11px;padding:14px 3px;background:#fff;font-size:14px;font-weight:800;color:#af2a52}
 .ok-cancel-summary{color:#3c5575;font-size:13px;margin-top:12px;font-weight:650;line-height:1.6}
@@ -141,7 +144,7 @@ textarea#weeklyReport{min-height:230px}
 <body>
 <main>
 <header>
-<h1>🔥 営業カウンター PRO 4.4</h1>
+<h1>🔥 営業カウンター PRO 4.6</h1>
 <div class="subtitle" id="date"></div>
 </header>
 
@@ -164,7 +167,9 @@ textarea#weeklyReport{min-height:230px}
 <h2>🏆 獲得記録</h2>
 <div class="item">
   <div class="flex"><div><div class="label">本日の獲得件数</div><div class="note">手法・商材・決済方法を選んで記録</div></div><div class="count" id="sales2">0</div></div>
-  <button class="primary wide" onclick="openWin('new')">🔥 獲得 ＋1件を記録</button>
+  <button class="primary wide" onclick="openWin('new')">🔥 獲得 ＋1件を記録（OK自動＋1）</button>
+  <button class="secondary wide" onclick="openWin('referral')" style="margin-top:10px;border-color:#9fcaee;background:#eff7ff;color:#1859a3">🤝 紹介・後日実績 ＋1件（OK自動＋1）</button>
+  <p class="guide" style="margin-top:9px">通常獲得はOKも自動で＋1。紹介・後日実績は母数・出勤日数を増やさず記録します。キャンセルは月間OKの「−」で調整できます。</p>
   <div id="today-unknown" class="note" style="margin-top:12px"></div>
   <button class="secondary wide" id="classifyToday" style="display:none" onclick="openWin('classify',dateKey())">以前の獲得に「手法・商材」を追加する</button>
 </div>
@@ -200,7 +205,10 @@ textarea#weeklyReport{min-height:230px}
     <tr><td>今月予算</td><td id="monPlan">—</td></tr>
     <tr><td>デジ着（手入力）</td><td id="monDigital">—</td></tr>
     <tr><td>手法別の獲得</td><td id="monMethods">—</td></tr>
-    <tr><td>天然水 / 浄水型</td><td id="monKinds">—</td></tr>
+    <tr><td>紹介・後日実績</td><td id="monReferrals">0件</td></tr>
+    <tr><td>天然水 / 浄水型（獲得内訳）</td><td id="monKinds">—</td></tr>
+    <tr><td>OK手動追加（天然水 / 浄水型）</td><td id="monOKAddKinds">—</td></tr>
+    <tr><td>OKキャンセル（天然水 / 浄水型）</td><td id="monOKCancelKinds">—</td></tr>
     <tr><td>PAS</td><td id="monPAS">—</td></tr>
     <tr><td>クレカ / キャリア / 口座</td><td id="monPayments">—</td></tr>
     <tr><td>クレカ率（全獲得ベース）</td><td id="monCreditRate">—</td></tr>
@@ -211,11 +219,19 @@ textarea#weeklyReport{min-height:230px}
 </div>
 <div class="item" id="okNumberEditor" style="margin-top:10px">
   <div class="label">✅ 月間OK数を修正（案件の特定は不要）</div>
-  <p class="guide" style="margin:8px 0 12px">OKが増えたら「＋1」、キャンセルなら「−1」を押して天然水・浄水型を選ぶだけ。獲得数は変えず、OK数・AVE・火曜日のメールに自動反映します。</p>
+  <p class="guide" style="margin:8px 0 12px">通常獲得・紹介登録ではOK数も自動で＋1。OK数だけを追加・修正するときは「＋」、キャンセル時は「−」で天然水・浄水型を選べます。±操作は獲得ETや出勤日数を変えません。通常獲得・紹介をすでに登録した分は二重計上しないでね。</p>
   <div class="ok-counter-box" aria-label="月間OK数カウンター">
-    <button class="ok-round-btn" onclick="changeManualOK(1)" aria-label="OKを1件増やす">＋</button>
+    <button class="ok-round-btn" onclick="toggleAddChooser()" aria-label="OK追加の商材を選ぶ" aria-expanded="false" aria-controls="okAddChooser" id="okAddTrigger">＋</button>
     <div class="ok-current"><div class="small">現在の月間OK数</div><strong id="manualOKDisplay">—</strong><div class="unit">OK</div></div>
-    <button class="ok-round-btn minus" onclick="toggleCancelChooser()" aria-label="キャンセルを1件登録する">−</button>
+    <button class="ok-round-btn minus" onclick="toggleCancelChooser()" aria-label="キャンセルを1件登録する" aria-expanded="false" aria-controls="okCancelChooser" id="okCancelTrigger">−</button>
+  </div>
+  <div class="ok-add-options" id="okAddChooser" hidden>
+    <div class="label" style="font-size:14px">追加するOKはどっち？</div>
+    <div class="ok-cancel-buttons">
+      <button onclick="registerKindAdd('natural')">🏞️ 天然水 ＋1</button>
+      <button onclick="registerKindAdd('filter')">🚰 浄水型 ＋1</button>
+    </div>
+    <button class="secondary" onclick="toggleAddChooser(false)" style="width:100%;margin-top:8px">やめる</button>
   </div>
   <div class="ok-cancel-options" id="okCancelChooser" hidden>
     <div class="label" style="font-size:14px">どちらがキャンセルになった？</div>
@@ -225,6 +241,7 @@ textarea#weeklyReport{min-height:230px}
     </div>
     <button class="secondary" onclick="toggleCancelChooser(false)" style="width:100%;margin-top:8px">やめる</button>
   </div>
+  <div class="ok-cancel-summary" id="okAddSummary">この画面で追加したOK：天然水 0件 ／ 浄水型 0件</div>
   <div class="ok-cancel-summary" id="okCancelSummary">この画面で登録したキャンセル：天然水 0件 ／ 浄水型 0件</div>
   <button class="secondary" onclick="undoManualOK()" id="undoManualOKButton" style="width:100%;margin:10px 0 12px" disabled>↩ 直前のOK操作を取り消す</button>
   <details class="ok-set-details">
@@ -240,7 +257,7 @@ textarea#weeklyReport{min-height:230px}
     <span class="guide" id="manualOKNote" style="flex:1">月間OK数はまだ修正していません</span>
     <button id="clearManualOK" class="secondary" style="display:none;width:auto;padding:8px 10px;font-size:12px" onclick="clearManualOK()">修正を解除</button>
   </div>
-  <p class="guide" style="margin-top:8px">※天然水・浄水型のキャンセル件数は、この画面で今後登録した分だけを表示します。過去のキャンセル内訳が不明なものは勝手に分類しません。</p>
+  <p class="guide" style="margin-top:8px">※ここで表示する商材別の追加・キャンセルは手動調整分だけです。獲得内訳とは別管理なので、ETや商材別の獲得数には加算しません。以前の商材不明な調整は勝手に分類しません。</p>
 </div>
 <details class="item" id="paymentMissingDetails" style="display:none;margin-top:10px">
   <summary>💳 決済未登録の案件 <span id="missingPayCount" class="pill orange">0件</span></summary>
@@ -303,14 +320,14 @@ textarea#weeklyReport{min-height:230px}
   <button class="secondary" onclick="document.getElementById('restoreInput').click()">📂 バックアップ復元</button>
   <input id="restoreInput" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
 </div>
-<footer>SALES COUNTER PRO 4.4 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
+<footer>SALES COUNTER PRO 4.5 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
 </main>
 
 <dialog id="winDialog">
   <div class="dialog-body">
     <div class="dialog-head"><h2 id="dialogTitle">🔥 獲得を記録</h2><button class="close" aria-label="閉じる" onclick="closeWin()">✕</button></div>
     <div class="note" id="dialogNote" style="margin:8px 0 16px"></div>
-    <div class="dialog-label">① どの手法で獲得した？</div>
+    <div class="dialog-label" id="methodStepLabel">① どの手法で獲得した？</div>
     <div class="choice-grid" id="methodChoices">
       <button class="choice" data-method="cut" onclick="chooseMethod('cut')">🎯 カットイン</button>
       <button class="choice" data-method="product" onclick="chooseMethod('product')">🛍️ 物販</button>
@@ -331,7 +348,7 @@ textarea#weeklyReport{min-height:230px}
     </div>
     <details id="dealDetails" class="settings-group" style="margin:4px 0 14px">
       <summary>📑 OK状況・契約年数・PASなど（任意）</summary>
-      <p class="guide">OK状況・5年・Loccaなども登録すると、火曜日のメールに自動集計されます。未入力項目は推測しません。</p>
+      <p class="guide" id="statusGuide">通常獲得・紹介のOK状況は「OK」が初期値です。確認中・NGの場合だけここで切り替えてね。5年・Loccaなども入力できます。</p>
       <div class="dialog-label">④ OK状況</div>
       <div class="status-grid" id="statusChoices">
         <button data-status="ok" onclick="chooseStatus('ok')">✅ OK</button>
@@ -353,7 +370,7 @@ textarea#weeklyReport{min-height:230px}
 // 初代アプリと同じ保存先。既存の母数・獲得件数を引き継ぐ。
 const STORE="sales-counter-v1";
 const CONFIG_STORE="sales-counter-monthly-v3";
-const METHODS={cut:"カットイン",product:"物販",sample:"試飲",other:"戻り・その他"};
+const METHODS={cut:"カットイン",product:"物販",sample:"試飲",other:"戻り・その他",referral:"紹介・後日実績"};
 const KINDS={natural:"天然水",filter:"浄水型"};
 let data={};
 try{const raw=JSON.parse(localStorage.getItem(STORE)||"{}");if(raw&&typeof raw==="object"&&!Array.isArray(raw))data=raw;}catch(e){data={};}
@@ -396,26 +413,30 @@ function addApproach(method){
 function openWin(mode="new",k=dateKey()){
   const r=day(k);
   if(mode==="classify"&&unknown(r)<=0){showToast("詳細を入力していない過去の獲得はありません");return;}
-  modal={mode,day:k,method:"",kind:"",status:"",term:"",pay:""};
+  const isReferral=mode==="referral",isNew=mode==="new",isClassify=mode==="classify";
+  modal={mode,day:k,method:isReferral?"referral":"",kind:"",status:isClassify?"":"ok",term:"",pay:""};
   document.getElementById("dealDetails").open=false;
   document.getElementById("dealPAS").checked=false;
   document.getElementById("dealLocca").checked=false;
-  document.getElementById("dialogTitle").textContent=mode==="new"?"🔥 新しい獲得を記録":"📝 前に獲得した案件の詳細を追加";
-  document.getElementById("payRequired").textContent=mode==="new"?"（必須）":"（分かる場合のみ）";
-  document.getElementById("winFooter").textContent=mode==="new"?"手法・商材・決済を選んだら保存！":"手法・商材を選択。決済が分かれば一緒に登録！";
-  document.getElementById("dialogNote").textContent=mode==="new"?"3つを選べば獲得＋1。OK状況の未選択は『確認中』になり、後からキャンセルにも変更できます。":k+" に獲得した "+unknown(r)+"件は手法・商材が未登録です。分かる範囲で詳細を追加できます（獲得数は増えません）。";
-  document.getElementById("saveWin").textContent=mode==="new"?"🔥 獲得 ＋1件を保存":"この1件の内訳を登録";
+  document.getElementById("methodStepLabel").style.display=isReferral?"none":"block";
+  document.getElementById("methodChoices").style.display=isReferral?"none":"grid";
+  document.getElementById("dialogTitle").textContent=isNew?"🔥 新しい獲得を記録":isReferral?"🤝 紹介・後日実績を記録":"📝 前に獲得した案件の詳細を追加";
+  document.getElementById("payRequired").textContent=isNew?"（必須）":"（分かる場合のみ）";
+  document.getElementById("winFooter").textContent=isNew?"手法・商材・決済を選ぶと、獲得ETとOKが各＋1！":isReferral?"商材を選ぶだけで登録OK。決済が不明なら空欄で大丈夫！":"手法・商材を選択。決済が分かれば一緒に登録！";
+  document.getElementById("dialogNote").textContent=isNew?"獲得ET ＋1・OK ＋1を自動登録。確認中やNGの場合は詳細から切り替えられます。":isReferral?"別日に紹介などの実績が追加されたらここから登録！ 獲得ET ＋1・OK ＋1。母数も出勤日数も増やしません。":k+" に獲得した "+unknown(r)+"件は手法・商材が未登録です。分かる範囲で詳細を追加できます（獲得・OK数は増やしません）。";
+  document.getElementById("statusGuide").textContent=isClassify?"過去の詳細を補完します。既存の月間OKと二重計上しないため、ここではOK数を加算しません。":"OKが初期選択です。確認中・NGの場合だけ切り替えてね。";
+  document.getElementById("saveWin").textContent=isNew?"🔥 獲得＋1・OK＋1を保存":isReferral?"🤝 紹介＋1・OK＋1を保存":"この1件の内訳を登録";
   refreshChoices();
   document.getElementById("winDialog").showModal();
 }
 function closeWin(){document.getElementById("winDialog").close();}
 function chooseMethod(m){if(!METHODS[m])return;modal.method=m;refreshChoices();}
 function chooseKind(k){if(!KINDS[k])return;modal.kind=k;refreshChoices();}
-function chooseStatus(s){modal.status=modal.status===s?"":s;refreshChoices();}
+function chooseStatus(s){if(modal.mode==="classify")return;modal.status=modal.status===s?"":s;refreshChoices();}
 function chooseTerm(s){modal.term=modal.term===s?"":s;refreshChoices();}
 function choosePay(s){modal.pay=modal.pay===s?"":s;refreshChoices();}
 function refreshChoices(){
-  document.querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("selected",b.dataset.status===modal.status));
+  document.querySelectorAll("[data-status]").forEach(b=>{b.classList.toggle("selected",b.dataset.status===modal.status);b.disabled=modal.mode==="classify";});
   document.querySelectorAll("[data-term]").forEach(b=>b.classList.toggle("selected",b.dataset.term===modal.term));
   document.querySelectorAll("[data-pay]").forEach(b=>b.classList.toggle("selected",b.dataset.pay===modal.pay));
   document.querySelectorAll("[data-method]").forEach(b=>b.classList.toggle("selected",b.dataset.method===modal.method));
@@ -426,15 +447,17 @@ function saveWin(){
   if(!METHODS[modal.method]||!KINDS[modal.kind]||(modal.mode==="new"&&!modal.pay))return;
   const r=day(modal.day);
   if(modal.mode==="classify"&&unknown(r)<=0){closeWin();render();return;}
+  const isAdd=modal.mode==="new"||modal.mode==="referral";
   const rec={id:Date.now()+"-"+Math.random().toString(36).slice(2),method:modal.method,kind:modal.kind,time:new Date().toISOString(),
-    status:modal.status||(modal.mode==="new"?"pending":null),term:modal.term||null,pay:modal.pay||null,
+    status:isAdd?(modal.status||"ok"):null,term:modal.term||null,pay:modal.pay||null,
     pas:document.getElementById("dealPAS").checked||false,locca:document.getElementById("dealLocca").checked||false};
   r.records.push(rec);
-  if(modal.mode==="new")r.sales++;
-  last={action:modal.mode==="new"?"newWin":"classify",day:modal.day,id:rec.id};
+  if(isAdd)r.sales++;
+  last={action:isAdd?"newWin":"classify",day:modal.day,id:rec.id};
   const mode=modal.mode;
+  if(isAdd)selectedMonth=businessMonthOf(modal.day);
   closeWin();save();render();
-  showToast(mode==="new"?"🔥 1件獲得！ナイス！":"✅ 過去の獲得を分類したよ！");
+  showToast(mode==="new"?"🔥 獲得・OK＋1！ナイス！":mode==="referral"?"🤝 紹介実績・OK＋1！":"✅ 過去の獲得を分類したよ！");
 }
 function undo(){
   if(!last){alert("戻せる操作がありません（ページを開き直すと直前操作はリセットされます）");return;}
@@ -456,10 +479,11 @@ function buildReport(k=dateKey()){
   const t=day(k),total=t.cut+t.product+t.sample;
   const lines=[
     "🔥 営業日報（"+k+"）",
-    "母数："+total+"／20　獲得："+t.sales+"／3　総合獲得率："+pct(t.sales,total),
+    "母数："+total+"／20　獲得："+t.sales+"／3　総合獲得率："+pct(t.sales-methodWins(t,"referral"),total)+"（紹介除く）",
     "【手法別】",
     ...["cut","product","sample"].map(m=>"・"+METHODS[m]+"："+t[m]+"母数／"+methodWins(t,m)+"件（"+pct(methodWins(t,m),t[m])+"）"),
     "・戻り・その他："+methodWins(t,"other")+"件",
+    "・紹介・後日実績："+methodWins(t,"referral")+"件（母数・出勤数に含まない）",
     "【商材別】",
     "・天然水："+kindWins(t,"natural")+"件",
     "・浄水型："+kindWins(t,"filter")+"件",
@@ -498,9 +522,9 @@ async function copyReport(){
 }
 function backup(){
   try{
-    const blob=new Blob([JSON.stringify({version:4,salesData:data,monthConfig:monthConfig,weeklyNotes:weeklyNotes},null,2)],{type:"application/json;charset=utf-8"});
+    const blob=new Blob([JSON.stringify({version:5,salesData:data,monthConfig:monthConfig,weeklyNotes:weeklyNotes},null,2)],{type:"application/json;charset=utf-8"});
     const u=URL.createObjectURL(blob),a=document.createElement("a");
-    a.href=u;a.download="sales-counter-pro4-backup-"+dateKey()+".json";document.body.appendChild(a);a.click();a.remove();
+    a.href=u;a.download="sales-counter-pro5-backup-"+dateKey()+".json";document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(u),1000);showToast("バックアップファイルを保存してね！");
   }catch(e){alert("バックアップに失敗しました。");}
 }
@@ -509,7 +533,7 @@ async function restoreBackup(event){
   if(!file)return;
   try{
     const incoming=JSON.parse(await file.text());
-    const isVersioned=incoming&&(incoming.version===3||incoming.version===4)&&incoming.salesData;
+    const isVersioned=incoming&&[3,4,5].includes(incoming.version)&&incoming.salesData;
     const restoredData=isVersioned?incoming.salesData:incoming;
     if(!restoredData||typeof restoredData!=="object"||Array.isArray(restoredData)||
        !Object.keys(restoredData).every(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)&&restoredData[k]&&typeof restoredData[k]==="object")){
@@ -613,21 +637,25 @@ function dateInPeriod(k,month){
 }
 function getMonthly(month=selectedMonth){
   let sales=0,days=0,mothers=0, natural=0,filter=0;
-  let cut=0,product=0,sample=0,other=0,pas=0,credit=0,carrier=0,account=0,term5=0,term3=0,locca=0,ok=0;
+  let cut=0,product=0,sample=0,other=0,referral=0,pas=0,credit=0,carrier=0,account=0,term5=0,term3=0,locca=0,ok=0;
   let legacy=0,unknownStatus=0,missingPayment=0,missingTerm=0;
   for(const [k,r] of Object.entries(data)){
     if(!dateInPeriod(k,month)||!r||typeof r!=="object")continue;
     const daySales=Math.max(0,Number(r.sales)||0);
     const counts=["cut","product","sample"].map(m=>Math.max(0,Number(r[m])||0));
     sales+=daySales;mothers+=counts.reduce((a,b)=>a+b,0);
-    if(daySales>0||counts.some(n=>n>0))days++;
     const recs=records(r);
+    // 紹介・後日実績だけ登録した日は出勤日にしない。
+    // 従来の母数なし通常獲得・古い実績データの出勤判定は維持する。
+    const referralWins=recs.filter(x=>x.method==="referral").length;
+    if(counts.some(n=>n>0)||daySales>referralWins)days++;
     legacy+=Math.max(0,daySales-recs.length);
     for(const rec of recs){
       if(rec.method==="cut")cut++;
       if(rec.method==="product")product++;
       if(rec.method==="sample")sample++;
       if(rec.method==="other")other++;
+      if(rec.method==="referral")referral++;
       if(rec.kind==="natural")natural++;
       if(rec.kind==="filter")filter++;
       if(rec.status==="ok")ok++;
@@ -654,7 +682,7 @@ function getMonthly(month=selectedMonth){
   const targetET=cfgValue("targetET",month),targetOK=cfgValue("targetOK",month);
   const budgetET=cfgValue("budgetET",month),budgetOK=cfgValue("budgetOK",month),plannedDays=cfgValue("plannedDays",month);
   const okKnown=hasCfg("okManualAdjustment",month)||hasCfg("oldOK",month)||!legacy&&!unknownStatus&&!cfgValue("extraET",month);
-  return {sales,days,mothers,natural,filter,cut,product,sample,other,pas,credit,carrier,account,term5,term3,locca,ok,okBase,okKnown,legacy,unknownStatus,missingPayment,missingTerm,targetET,targetOK,budgetET,budgetOK,plannedDays};
+  return {sales,days,mothers,natural,filter,cut,product,sample,other,referral,pas,credit,carrier,account,term5,term3,locca,ok,okBase,okKnown,legacy,unknownStatus,missingPayment,missingTerm,targetET,targetOK,budgetET,budgetOK,plannedDays};
 }
 function renderMissingPeriodHint(month){
   const bounds=getPeriodBounds(month);
@@ -696,7 +724,11 @@ function renderMonth(){
   document.getElementById("monPlan").textContent=t.budgetET+"ET / "+t.budgetOK+"OK";
   document.getElementById("monDigital").textContent=hasCfg("digitalOK")?number(cfgValue("digitalOK"))+"OK":"未入力";
   document.getElementById("monMethods").textContent="カットイン "+t.cut+" / 物販 "+t.product+" / 試飲 "+t.sample+" / その他 "+t.other;
+  document.getElementById("monReferrals").textContent=t.referral+"件（獲得ETに含む・出勤日数は増やさない）";
   document.getElementById("monKinds").textContent=t.natural+" / "+t.filter;
+  const addedOK=getAddKindCounts(month),canceledOK=getCancelKindCounts(month);
+  document.getElementById("monOKAddKinds").textContent=addedOK.natural+" / "+addedOK.filter+(addedOK.unclassified?"（不明 "+addedOK.unclassified+"）":"");
+  document.getElementById("monOKCancelKinds").textContent=canceledOK.natural+" / "+canceledOK.filter;
   document.getElementById("monPAS").textContent=t.pas+"件（"+rate0(t.pas,t.sales)+"）";
   document.getElementById("monPayments").textContent=t.credit+" / "+t.carrier+" / "+t.account;
   const knownPays=t.credit+t.carrier+t.account;
@@ -720,6 +752,16 @@ function manualOKHistory(month=selectedMonth){
   const a=configFor(month).manualOKActions;
   return Array.isArray(a)?a:[];
 }
+function getAddKindCounts(month=selectedMonth){
+  const hist=manualOKHistory(month);
+  return hist.reduce((counts,item)=>{
+    if(item?.type==="plus"){
+      if(["natural","filter"].includes(item.kind))counts[item.kind]++;
+      else counts.unclassified++;
+    }
+    return counts;
+  },{natural:0,filter:0,unclassified:0});
+}
 function getCancelKindCounts(month=selectedMonth){
   const hist=manualOKHistory(month);
   return hist.reduce((counts,item)=>{
@@ -731,20 +773,35 @@ function logManualOK(type,kind=""){
   const cfg=configFor();const h=manualOKHistory().slice(-99);
   h.push({type,kind,at:new Date().toISOString()});cfg.manualOKActions=h;
 }
+// 月間OK＋は商材を選んでから確定。旧バージョンの無分類＋履歴はそのまま残す。
 function changeManualOK(amount){
-  const t=getMonthly();
-  if(!t.okKnown){alert("最初に『数字を直接入力する』から現在の月間OK数を登録してね！");return;}
-  if(t.ok+amount<0){alert("OK数は0未満にはできません");return;}
+  if(amount===1){toggleAddChooser(true);return;}
   if(amount===-1){toggleCancelChooser(true);return;}
-  configFor().okManualAdjustment=monthOKDelta()+amount;
-  logManualOK("plus");
-  saveConfigs();render();showToast("✅ 月間OK数 ＋1！");
+}
+function syncOKChoosers(){
+  document.getElementById("okAddTrigger").setAttribute("aria-expanded",String(!document.getElementById("okAddChooser").hidden));
+  document.getElementById("okCancelTrigger").setAttribute("aria-expanded",String(!document.getElementById("okCancelChooser").hidden));
+}
+function toggleAddChooser(force){
+  const el=document.getElementById("okAddChooser");
+  el.hidden=force===false?true:force===true?false:!el.hidden;
+  if(!el.hidden)document.getElementById("okCancelChooser").hidden=true;
+  syncOKChoosers();
 }
 function toggleCancelChooser(force){
   const el=document.getElementById("okCancelChooser");
-  if(force===false)el.hidden=true;
-  else if(force===true)el.hidden=false;
-  else el.hidden=!el.hidden;
+  el.hidden=force===false?true:force===true?false:!el.hidden;
+  if(!el.hidden)document.getElementById("okAddChooser").hidden=true;
+  syncOKChoosers();
+}
+function registerKindAdd(kind){
+  if(!["natural","filter"].includes(kind))return;
+  const t=getMonthly();
+  if(!t.okKnown){alert("先に現在の月間OK数を直接入力してね！");return;}
+  configFor().okManualAdjustment=monthOKDelta()+1;
+  logManualOK("plus",kind);
+  saveConfigs();render();toggleAddChooser(false);
+  showToast((kind==="natural"?"🏞️ 天然水":"🚰 浄水型")+"のOK ＋1！（ETはそのまま）");
 }
 function registerKindCancel(kind){
   if(!["natural","filter"].includes(kind))return;
@@ -769,7 +826,8 @@ function undoManualOK(){
 function renderManualOK(){
   const t=getMonthly(),input=document.getElementById("manualOKInput");
   document.getElementById("manualOKDisplay").textContent=t.okKnown?number(t.ok):"—";
-  const kinds=getCancelKindCounts();
+  const kinds=getCancelKindCounts(),added=getAddKindCounts();
+  document.getElementById("okAddSummary").textContent="この画面で追加したOK：天然水 "+added.natural+"件 ／ 浄水型 "+added.filter+"件"+(added.unclassified?" ／ 商材未分類 "+added.unclassified+"件（旧データ）":"");
   document.getElementById("okCancelSummary").textContent="この画面で登録したキャンセル：天然水 "+kinds.natural+"件 ／ 浄水型 "+kinds.filter+"件";
   const actions=manualOKHistory();
   document.getElementById("undoManualOKButton").disabled=!actions.length||actions.at(-1).type==="set";
@@ -856,7 +914,10 @@ function buildWeeklyEmail(){
     "・出勤日 "+t.plannedDays+"日",
     "・出勤数 "+t.days+"日",
     "・獲得数 "+t.sales+"件",
+    "・紹介・後日実績 "+t.referral+"件（獲得数に含む）",
     "・OK数 "+ok,
+    "・手動OK追加（天然水） "+getAddKindCounts().natural+"件（アプリ調整分）",
+    "・手動OK追加（浄水型） "+getAddKindCounts().filter+"件（アプリ調整分）",
     "・キャンセル（天然水） "+getCancelKindCounts().natural+"件（アプリ登録分）",
     "・キャンセル（浄水型） "+getCancelKindCounts().filter+"件（アプリ登録分）",
     "・OK率 "+(t.okKnown?rate0(t.ok,t.sales):"未入力"),
@@ -896,7 +957,7 @@ function render(){
   document.getElementById("sales").textContent=t.sales;
   document.getElementById("sales2").textContent=t.sales;
   document.getElementById("total").textContent=total;
-  document.getElementById("rate").textContent=pct(t.sales,total);
+  document.getElementById("rate").textContent=pct(t.sales-methodWins(t,"referral"),total);
   document.getElementById("bar1").style.width=Math.min(total/20*100,100)+"%";
   document.getElementById("bar2").style.width=Math.min(t.sales/3*100,100)+"%";
   document.getElementById("natural").textContent=kindWins(t,"natural");
@@ -905,7 +966,10 @@ function render(){
   const payCounts={credit:0,carrier:0,account:0};
   for(const r of records(t)){if(Object.hasOwn(payCounts,r.pay))payCounts[r.pay]++;}
   document.getElementById("todayPayments").textContent="💳 クレカ "+payCounts.credit+"件（"+pct(payCounts.credit,t.sales)+"） / 📱 キャリア "+payCounts.carrier+"件 / 🏦 口座 "+payCounts.account+"件";
-  document.getElementById("otherWins").textContent=methodWins(t,"other")?"戻り・その他での獲得："+methodWins(t,"other")+"件":"";
+  const extraLabels=[];
+  if(methodWins(t,"other"))extraLabels.push("戻り・その他："+methodWins(t,"other")+"件");
+  if(methodWins(t,"referral"))extraLabels.push("紹介・後日実績："+methodWins(t,"referral")+"件");
+  document.getElementById("otherWins").textContent=extraLabels.join(" / ");
   document.getElementById("today-unknown").textContent=missing?"※以前の獲得で、手法・商材を入力していないものが"+missing+"件あります。":"";
   document.getElementById("classifyToday").style.display=missing?"block":"none";
   let weekSales=0,weekTotal=0,weekUnknown=0,weeklyMethods={cut:0,product:0,sample:0},weeklyCounts={cut:0,product:0,sample:0},weeklyKinds={natural:0,filter:0};
@@ -922,7 +986,7 @@ function render(){
     head.append(name,nums);block.append(head);
     if(r.sales){
       const detail=document.createElement("div");detail.className="note";
-      detail.textContent="天然水 "+kindWins(r,"natural")+"・浄水型 "+kindWins(r,"filter")+" ／ カットイン "+methodWins(r,"cut")+"・物販 "+methodWins(r,"product")+"・試飲 "+methodWins(r,"sample")+(methodWins(r,"other")?"・戻り等 "+methodWins(r,"other"):"");
+      detail.textContent="天然水 "+kindWins(r,"natural")+"・浄水型 "+kindWins(r,"filter")+" ／ カットイン "+methodWins(r,"cut")+"・物販 "+methodWins(r,"product")+"・試飲 "+methodWins(r,"sample")+(methodWins(r,"other")?"・戻り等 "+methodWins(r,"other"):"")+(methodWins(r,"referral")?"・紹介 "+methodWins(r,"referral"):"");
       block.append(detail);
       if(unknown(r)>0){
         const b=document.createElement("button");b.textContent="過去の獲得 "+unknown(r)+"件 → 手法・商材を入力";
@@ -938,7 +1002,7 @@ function render(){
   }
   document.getElementById("week-natural").textContent=weeklyKinds.natural;
   document.getElementById("week-filter").textContent=weeklyKinds.filter;
-  document.getElementById("week-note").textContent=weekUnknown?"※過去の獲得で手法・商材を入力していない案件が"+weekUnknown+"件あるため、内訳の合計は獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数";
+  document.getElementById("week-note").textContent=weekUnknown?"※過去の獲得で手法・商材を入力していない案件が"+weekUnknown+"件あるため、内訳の合計は獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数（紹介は母数対象外）";
   document.getElementById("report").value=buildReport();
   fillConfigFields();renderMonth();renderWeeklyReport();
 }
