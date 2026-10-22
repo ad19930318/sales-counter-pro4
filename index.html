@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f3f6fc">
-<title>営業カウンター PRO 4.6 - OK商材別調整</title>
+<title>営業カウンター PRO 4.7 - 月間獲得カレンダー</title>
 <style>
 :root{--navy:#13233f;--muted:#66758d;--blue:#2367e8;--green:#139e70;--bg:#f3f6fc;--line:#e6ebf3;--shadow:0 5px 22px rgba(22,47,85,.055)}
 *{box-sizing:border-box}
@@ -139,12 +139,45 @@ textarea#weeklyReport{min-height:230px}
 .ok-cancel-summary{color:#3c5575;font-size:13px;margin-top:12px;font-weight:650;line-height:1.6}
 .ok-set-details{margin-top:8px;border-top:1px solid #e3eaf5;padding-top:12px}
 .ok-set-details summary{cursor:pointer;font-size:13px;font-weight:750;color:#2d62c8}
+
+/* 月間獲得カレンダー：日別の獲得ETを可視化。OKの手動調整は日付に配賦しない */
+.calendar-nav{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:12px}
+.calendar-nav button{background:#edf4ff;border-radius:10px;color:#2355a1;font-weight:800;padding:10px 8px;font-size:13px;white-space:nowrap}
+.calendar-current{text-align:center;min-width:0}
+.calendar-current strong{display:block;font-size:19px}
+.calendar-current .small{display:block;font-size:11px;margin-top:3px}
+.calendar-summary{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
+.calendar-summary span{font-size:12px;background:#f1f6ff;border-radius:8px;padding:8px 10px;color:#34547e;font-weight:750}
+.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.calendar-weekdays{margin:12px 0 7px;text-align:center;color:#64748b;font-size:12px;font-weight:800}
+.calendar-weekdays span:first-child{color:#cf5362}.calendar-weekdays span:last-child{color:#437ed7}
+.calendar-cell{min-width:0;min-height:68px;background:#f7f9fd;border:1.5px solid #e8edf5;border-radius:10px;padding:7px 1px 5px;text-align:center;color:#273b56;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px}
+.calendar-day{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+.calendar-win{font-size:14px;font-weight:850;line-height:1.3;white-space:nowrap}
+.calendar-mother{font-size:10px;color:#60748e;white-space:nowrap;line-height:1.2}
+.calendar-cell.no-log .calendar-win{color:#bbc4d2;font-weight:650}
+.calendar-cell.wins-0{background:#fff8f8;border-color:#f4e5e9}.calendar-cell.wins-0 .calendar-win{color:#bc5365}
+.calendar-cell.wins-1{background:#edf5ff;border-color:#d7e5fd}.calendar-cell.wins-1 .calendar-win{color:#2b69c7}
+.calendar-cell.wins-2{background:#ddf5ec;border-color:#c0ebda}.calendar-cell.wins-2 .calendar-win{color:#0c8b66}
+.calendar-cell.wins-3{background:#cef2dd;border-color:#a9e4c3}.calendar-cell.wins-3 .calendar-win{color:#08754e}
+.calendar-cell.wins-4{background:#bcebd4;border-color:#91d9ba}.calendar-cell.wins-4 .calendar-win{color:#056c44}
+.calendar-cell.is-today .calendar-day{background:#2a6fe9;color:#fff;border-radius:6px;padding:2px 5px}
+.calendar-cell.is-selected{outline:2px solid #306be0;outline-offset:1px}
+.calendar-cell:focus-visible{outline:3px solid #2367e8;outline-offset:2px}
+.calendar-blank{min-height:68px}
+.calendar-legend{font-size:11px;color:#728099;line-height:1.7;margin:12px 0 3px}
+.calendar-detail{background:#f6f9ff;border:1px solid #e2eaf8;border-radius:13px;padding:13px;margin-top:12px}
+.calendar-detail h3{font-size:15px;margin:0 0 8px}
+.calendar-detail .calendar-detail-total{font-size:19px;font-weight:850;margin-bottom:8px;color:#204f9a}
+.calendar-detail .calendar-detail-row{color:#47617f;font-size:12px;line-height:1.7}
+.calendar-detail button{margin-top:8px;border-radius:9px;background:#e3eeff;color:#2454a2;padding:9px;font-weight:800;font-size:12px}
+@media(max-width:360px){.calendar-weekdays,.calendar-grid{gap:3px}.calendar-cell{min-height:63px;border-radius:8px}.calendar-win{font-size:13px}.calendar-mother{font-size:9px}.calendar-nav button{font-size:12px;padding:9px 6px}}
 </style>
 </head>
 <body>
 <main>
 <header>
-<h1>🔥 営業カウンター PRO 4.6</h1>
+<h1>🔥 営業カウンター PRO 4.7</h1>
 <div class="subtitle" id="date"></div>
 </header>
 
@@ -289,8 +322,19 @@ textarea#weeklyReport{min-height:230px}
   <div id="week-note" class="note" style="margin-top:12px"></div>
 </div>
 
-<h2>📅 直近7日間の履歴</h2>
-<div class="item" id="history"></div>
+<h2>🗓️ 月間獲得カレンダー</h2>
+<div class="item">
+  <div class="calendar-nav">
+    <button type="button" onclick="shiftMonth(-1)" aria-label="前月を表示">❮ 前月</button>
+    <div class="calendar-current"><strong id="calendarMonth">—</strong><span class="small">日別の獲得数を確認</span></div>
+    <button type="button" onclick="shiftMonth(1)" aria-label="翌月を表示">翌月 ❯</button>
+  </div>
+  <div class="calendar-summary" id="calendarSummary"></div>
+  <div class="calendar-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+  <div id="monthCalendar" class="calendar-grid" aria-label="月間の獲得履歴"></div>
+  <p class="calendar-legend">色が濃いほど獲得件数が多い日。記録のない日は「—」、母数があって未獲得の日は「0件」と表示します。日付をタップすると詳細を確認できます。</p>
+  <div id="calendarDetail" class="calendar-detail" aria-live="polite"></div>
+</div>
 
 
 <h2>✉️ 火曜日の行動予定メール <span class="tag">NEW</span></h2>
@@ -320,7 +364,7 @@ textarea#weeklyReport{min-height:230px}
   <button class="secondary" onclick="document.getElementById('restoreInput').click()">📂 バックアップ復元</button>
   <input id="restoreInput" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
 </div>
-<footer>SALES COUNTER PRO 4.5 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
+<footer>SALES COUNTER PRO 4.7 | 積み重ねが結果を変える🔥<br>この端末・ブラウザ内に保存されます。機種変更前はバックアップしてね。</footer>
 </main>
 
 <dialog id="winDialog">
@@ -558,6 +602,7 @@ function businessMonthOf(date=dateKey()){
   return date.slice(0,7);
 }
 let selectedMonth=businessMonthOf();
+let selectedCalendarDay=dateKey();
 const TARGET_FIELDS=[
   ["targetET","今月目標 ET",70],["targetOK","今月目標 OK",60],
   ["budgetET","今月予算 ET",50],["budgetOK","今月予算 OK",40],
@@ -595,7 +640,7 @@ function saveConfigs(){
 function shiftMonth(delta){
   const [yy,mm]=selectedMonth.split("-").map(Number);
   const d=new Date(yy,mm-1+delta,1,12);
-  selectedMonth=dateKey(d).slice(0,7);last=null;render();
+  selectedMonth=dateKey(d).slice(0,7);selectedCalendarDay=selectedMonth===businessMonthOf()?dateKey():null;last=null;render();
 }
 function createConfigFields(){
   for(const [id,container] of [[TARGET_FIELDS,"targetsGrid"],[ADJ_FIELDS,"adjustGrid"],[["digitalOK","デジ着（累計OK数）",0],"digitalGrid"]]){
@@ -916,10 +961,6 @@ function buildWeeklyEmail(){
     "・獲得数 "+t.sales+"件",
     "・紹介・後日実績 "+t.referral+"件（獲得数に含む）",
     "・OK数 "+ok,
-    "・手動OK追加（天然水） "+getAddKindCounts().natural+"件（アプリ調整分）",
-    "・手動OK追加（浄水型） "+getAddKindCounts().filter+"件（アプリ調整分）",
-    "・キャンセル（天然水） "+getCancelKindCounts().natural+"件（アプリ登録分）",
-    "・キャンセル（浄水型） "+getCancelKindCounts().filter+"件（アプリ登録分）",
     "・OK率 "+(t.okKnown?rate0(t.ok,t.sales):"未入力"),
     "・AVE "+(t.okKnown?(t.days?(t.ok/t.days).toFixed(3):"—"):"未入力"),
     "・デジ着 "+(hasCfg("digitalOK")?cfgValue("digitalOK")+"OK":"未入力"),
@@ -945,6 +986,81 @@ function renderWeeklyReport(){
   document.getElementById("weeklyReport").value=buildWeeklyEmail();
   document.getElementById("weekRange").textContent="文章保存単位："+currentWeekKey()+"（火）からの1週間。月間数値は上で選択中の "+selectedMonth+" を反映";
 }
+// 選択中の月を、日別の獲得数・母数付きカレンダーとして描画。
+// 古いデータ形式も日別salesを読むだけなので、保存形式は変更しない。
+function calendarDayDetails(k){
+  selectedCalendarDay=k;
+  renderCalendar();
+}
+function renderCalendar(){
+  const [year,month]=selectedMonth.split("-").map(Number);
+  const start=new Date(year,month-1,1,12);
+  const lastDay=new Date(year,month,0,12).getDate();
+  const today=dateKey();
+  const root=document.getElementById("monthCalendar");
+  const detail=document.getElementById("calendarDetail");
+  root.replaceChildren();detail.replaceChildren();
+  document.getElementById("calendarMonth").textContent=year+"年"+month+"月";
+  const monthly=getMonthly(selectedMonth);
+  let calendarWins=0,calendarDays=0;
+  for(let i=0;i<start.getDay();i++){
+    const blank=document.createElement("div");blank.className="calendar-blank";blank.setAttribute("aria-hidden","true");root.append(blank);
+  }
+  for(let num=1;num<=lastDay;num++){
+    const k=selectedMonth+"-"+String(num).padStart(2,"0");
+    const r=data[k];
+    const wins=Math.max(0,Math.floor(Number(r?.sales)||0));
+    const mothers=["cut","product","sample"].reduce((n,key)=>n+Math.max(0,Number(r?.[key])||0),0);
+    const isRecorded=!!r&&(wins>0||mothers>0);
+    if(isRecorded){calendarWins+=wins;if(mothers>0||wins>records(r).filter(x=>x.method==="referral").length)calendarDays++;}
+    const button=document.createElement("button");button.type="button";
+    button.className="calendar-cell "+(isRecorded?"wins-"+Math.min(4,wins):"no-log")+(k===today?" is-today":"")+(k===selectedCalendarDay?" is-selected":"");
+    button.setAttribute("aria-label",month+"月"+num+"日、"+(isRecorded?"獲得"+wins+"件、母数"+mothers:"記録なし"));
+    button.setAttribute("aria-pressed",String(k===selectedCalendarDay));
+    const daySpan=document.createElement("span");daySpan.className="calendar-day";daySpan.textContent=String(num);
+    const winSpan=document.createElement("span");winSpan.className="calendar-win";winSpan.textContent=isRecorded?wins+"件":"—";
+    const motherSpan=document.createElement("span");motherSpan.className="calendar-mother";motherSpan.textContent=isRecorded?"母"+mothers:"";
+    button.append(daySpan,winSpan,motherSpan);
+    button.addEventListener("click",()=>calendarDayDetails(k));root.append(button);
+  }
+  const summary=document.getElementById("calendarSummary");summary.replaceChildren();
+  for(const label of ["月間獲得 "+monthly.sales+"件","出勤 "+monthly.days+"日","獲得AVE "+(monthly.days?(monthly.sales/monthly.days).toFixed(2):"—")]){
+    const pill=document.createElement("span");pill.textContent=label;summary.append(pill);
+  }
+  if(monthly.sales!==calendarWins||monthly.days!==calendarDays){
+    const note=document.createElement("div");note.className="guide";note.style.marginTop="8px";
+    note.textContent="※上の月間集計には未記録分の手入力が含まれる場合があります。日付不明の実績はカレンダーには割り当てません。";
+    detail.append(note);
+  }
+  if(!selectedCalendarDay||!selectedCalendarDay.startsWith(selectedMonth+"-")){
+    const msg=document.createElement("div");msg.className="note";msg.textContent="見たい日付をタップすると、母数・商材・獲得手法の内訳を表示します。";detail.append(msg);return;
+  }
+  const k=selectedCalendarDay,r=data[k];
+  const heading=document.createElement("h3");
+  const selected=new Date(year,month-1,Number(k.slice(8)),12);
+  heading.textContent=selected.toLocaleDateString("ja-JP",{month:"long",day:"numeric",weekday:"short"})+"の詳細";
+  detail.append(heading);
+  const wins=Math.max(0,Math.floor(Number(r?.sales)||0));
+  const mothers=["cut","product","sample"].reduce((n,key)=>n+Math.max(0,Number(r?.[key])||0),0);
+  if(!r||!(wins||mothers)){
+    const empty=document.createElement("div");empty.className="note";empty.textContent="この日の母数・獲得記録はありません。";detail.append(empty);return;
+  }
+  const total=document.createElement("div");total.className="calendar-detail-total";total.textContent="獲得 "+wins+"件 ／ 母数 "+mothers;
+  const kind=document.createElement("div");kind.className="calendar-detail-row";
+  kind.textContent="商材：天然水 "+kindWins(r,"natural")+"件 ／ 浄水型 "+kindWins(r,"filter")+"件";
+  const method=document.createElement("div");method.className="calendar-detail-row";
+  method.textContent="獲得手法：カットイン "+methodWins(r,"cut")+"件 ／ 物販 "+methodWins(r,"product")+"件 ／ 試飲 "+methodWins(r,"sample")+"件 ／ その他 "+methodWins(r,"other")+"件 ／ 紹介 "+methodWins(r,"referral")+"件";
+  const mother=document.createElement("div");mother.className="calendar-detail-row";
+  mother.textContent="母数内訳：カットイン "+(Number(r.cut)||0)+" ／ 物販 "+(Number(r.product)||0)+" ／ 試飲 "+(Number(r.sample)||0);
+  detail.append(total,kind,method,mother);
+  if(unknown(r)>0){
+    const info=document.createElement("div");info.className="calendar-detail-row";
+    info.textContent="※手法・商材が未登録の獲得："+unknown(r)+"件";detail.append(info);
+    const button=document.createElement("button");button.type="button";button.textContent="✏️ この日の未分類案件を入力";
+    button.addEventListener("click",()=>openWin("classify",k));detail.append(button);
+  }
+}
+
 createConfigFields();fillConfigFields();fillNotes();
 
 function render(){
@@ -973,27 +1089,11 @@ function render(){
   document.getElementById("today-unknown").textContent=missing?"※以前の獲得で、手法・商材を入力していないものが"+missing+"件あります。":"";
   document.getElementById("classifyToday").style.display=missing?"block":"none";
   let weekSales=0,weekTotal=0,weekUnknown=0,weeklyMethods={cut:0,product:0,sample:0},weeklyCounts={cut:0,product:0,sample:0},weeklyKinds={natural:0,filter:0};
-  const history=document.getElementById("history");history.replaceChildren();
   for(let i=0;i<7;i++){
     const k=datePast(i),r=day(k),n=r.cut+r.product+r.sample;
     weekSales+=r.sales;weekTotal+=n;weekUnknown+=unknown(r);
     for(const m of ["cut","product","sample"]){weeklyMethods[m]+=methodWins(r,m);weeklyCounts[m]+=r[m];}
     for(const kind of ["natural","filter"])weeklyKinds[kind]+=kindWins(r,kind);
-    const block=document.createElement("div");block.className="history";
-    const head=document.createElement("div");head.className="historyhead";
-    const name=document.createElement("span");name.className="history-title";name.textContent=k.slice(5).replace("-","/")+(i===0?"（今日）":"");
-    const nums=document.createElement("span");nums.className="history-number";nums.textContent="母数 "+n+" ／ 獲得 "+r.sales+"件";
-    head.append(name,nums);block.append(head);
-    if(r.sales){
-      const detail=document.createElement("div");detail.className="note";
-      detail.textContent="天然水 "+kindWins(r,"natural")+"・浄水型 "+kindWins(r,"filter")+" ／ カットイン "+methodWins(r,"cut")+"・物販 "+methodWins(r,"product")+"・試飲 "+methodWins(r,"sample")+(methodWins(r,"other")?"・戻り等 "+methodWins(r,"other"):"")+(methodWins(r,"referral")?"・紹介 "+methodWins(r,"referral"):"");
-      block.append(detail);
-      if(unknown(r)>0){
-        const b=document.createElement("button");b.textContent="過去の獲得 "+unknown(r)+"件 → 手法・商材を入力";
-        b.addEventListener("click",()=>openWin("classify",k));block.append(b);
-      }
-    }
-    history.append(block);
   }
   document.getElementById("weekTotal").textContent="母数 "+weekTotal+" ／ 獲得 "+weekSales+"件";
   for(const m of ["cut","product","sample"]){
@@ -1004,7 +1104,7 @@ function render(){
   document.getElementById("week-filter").textContent=weeklyKinds.filter;
   document.getElementById("week-note").textContent=weekUnknown?"※過去の獲得で手法・商材を入力していない案件が"+weekUnknown+"件あるため、内訳の合計は獲得数と一致しません。":"※手法別成約率＝その手法の獲得件数 ÷ その手法の母数（紹介は母数対象外）";
   document.getElementById("report").value=buildReport();
-  fillConfigFields();renderMonth();renderWeeklyReport();
+  fillConfigFields();renderMonth();renderCalendar();renderWeeklyReport();
 }
 render();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)render();});
