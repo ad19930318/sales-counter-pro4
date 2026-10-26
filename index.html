@@ -195,7 +195,7 @@ textarea#weeklyReport{min-height:230px}
 <div class="section-note">声をかけたら「＋1」。獲得したときは下の緑ボタンから内訳を登録！</div>
 <div class="item"><div class="flex"><div style="flex:1"><div class="label">🎯 カットイン</div><div class="note" id="cut-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="cut">0</div><button class="add" onclick="addApproach('cut')">＋1</button></div></div>
 <div class="item"><div class="flex"><div style="flex:1"><div class="label">🛍️ 物販</div><div class="note" id="product-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="product">0</div><button class="add" onclick="addApproach('product')">＋1</button></div></div>
-<div class="item"><div class="flex"><div style="flex:1"><div class="label">🥤 試飲</div><div class="note" id="sample-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="sample">0</div><button class="add" onclick="addApproach('sample')">＋1</button></div></div>
+<div class="item"><div class="flex"><div style="flex:1"><div class="label">🎪 ブース</div><div class="note" id="sample-detail">獲得 0件 / 成約率 0%</div></div><div class="count" id="sample">0</div><button class="add" onclick="addApproach('sample')">＋1</button></div></div>
 
 <h2>🏆 獲得記録</h2>
 <div class="item">
@@ -316,7 +316,7 @@ textarea#weeklyReport{min-height:230px}
   <div class="metrics">
     <div class="mini"><small>カットイン</small><strong id="week-cut">0</strong><small id="week-cut-rate">成約率 -</small></div>
     <div class="mini"><small>物販</small><strong id="week-product">0</strong><small id="week-product-rate">成約率 -</small></div>
-    <div class="mini"><small>試飲</small><strong id="week-sample">0</strong><small id="week-sample-rate">成約率 -</small></div>
+    <div class="mini"><small>ブース</small><strong id="week-sample">0</strong><small id="week-sample-rate">成約率 -</small></div>
   </div>
   <div class="split"><div class="metric"><span class="small">天然水</span><b id="week-natural">0</b></div><div class="metric"><span class="small">浄水型</span><b id="week-filter">0</b></div></div>
   <div id="week-note" class="note" style="margin-top:12px"></div>
@@ -375,7 +375,7 @@ textarea#weeklyReport{min-height:230px}
     <div class="choice-grid" id="methodChoices">
       <button class="choice" data-method="cut" onclick="chooseMethod('cut')">🎯 カットイン</button>
       <button class="choice" data-method="product" onclick="chooseMethod('product')">🛍️ 物販</button>
-      <button class="choice" data-method="sample" onclick="chooseMethod('sample')">🥤 試飲</button>
+      <button class="choice" data-method="sample" onclick="chooseMethod('sample')">🎪 ブース</button>
       <button class="choice" data-method="other" onclick="chooseMethod('other')">🔁 戻り・その他</button>
     </div>
     <div class="dialog-label">② 天然水？ 浄水型？</div>
@@ -414,7 +414,7 @@ textarea#weeklyReport{min-height:230px}
 // 初代アプリと同じ保存先。既存の母数・獲得件数を引き継ぐ。
 const STORE="sales-counter-v1";
 const CONFIG_STORE="sales-counter-monthly-v3";
-const METHODS={cut:"カットイン",product:"物販",sample:"試飲",other:"戻り・その他",referral:"紹介・後日実績"};
+const METHODS={cut:"カットイン",product:"物販",sample:"ブース",other:"戻り・その他",referral:"紹介・後日実績"};
 const KINDS={natural:"天然水",filter:"浄水型"};
 let data={};
 try{const raw=JSON.parse(localStorage.getItem(STORE)||"{}");if(raw&&typeof raw==="object"&&!Array.isArray(raw))data=raw;}catch(e){data={};}
@@ -768,7 +768,7 @@ function renderMonth(){
   document.getElementById("monTarget").textContent=t.targetET+"ET / "+t.targetOK+"OK";
   document.getElementById("monPlan").textContent=t.budgetET+"ET / "+t.budgetOK+"OK";
   document.getElementById("monDigital").textContent=hasCfg("digitalOK")?number(cfgValue("digitalOK"))+"OK":"未入力";
-  document.getElementById("monMethods").textContent="カットイン "+t.cut+" / 物販 "+t.product+" / 試飲 "+t.sample+" / その他 "+t.other;
+  document.getElementById("monMethods").textContent="カットイン "+t.cut+" / 物販 "+t.product+" / ブース "+t.sample+" / その他 "+t.other;
   document.getElementById("monReferrals").textContent=t.referral+"件（獲得ETに含む・出勤日数は増やさない）";
   document.getElementById("monKinds").textContent=t.natural+" / "+t.filter;
   const addedOK=getAddKindCounts(month),canceledOK=getCancelKindCounts(month);
@@ -1049,9 +1049,9 @@ function renderCalendar(){
   const kind=document.createElement("div");kind.className="calendar-detail-row";
   kind.textContent="商材：天然水 "+kindWins(r,"natural")+"件 ／ 浄水型 "+kindWins(r,"filter")+"件";
   const method=document.createElement("div");method.className="calendar-detail-row";
-  method.textContent="獲得手法：カットイン "+methodWins(r,"cut")+"件 ／ 物販 "+methodWins(r,"product")+"件 ／ 試飲 "+methodWins(r,"sample")+"件 ／ その他 "+methodWins(r,"other")+"件 ／ 紹介 "+methodWins(r,"referral")+"件";
+  method.textContent="獲得手法：カットイン "+methodWins(r,"cut")+"件 ／ 物販 "+methodWins(r,"product")+"件 ／ ブース "+methodWins(r,"sample")+"件 ／ その他 "+methodWins(r,"other")+"件 ／ 紹介 "+methodWins(r,"referral")+"件";
   const mother=document.createElement("div");mother.className="calendar-detail-row";
-  mother.textContent="母数内訳：カットイン "+(Number(r.cut)||0)+" ／ 物販 "+(Number(r.product)||0)+" ／ 試飲 "+(Number(r.sample)||0);
+  mother.textContent="母数内訳：カットイン "+(Number(r.cut)||0)+" ／ 物販 "+(Number(r.product)||0)+" ／ ブース "+(Number(r.sample)||0);
   detail.append(total,kind,method,mother);
   if(unknown(r)>0){
     const info=document.createElement("div");info.className="calendar-detail-row";
